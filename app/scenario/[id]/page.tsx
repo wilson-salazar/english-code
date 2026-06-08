@@ -40,22 +40,35 @@ export default function ScenarioPage() {
   const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
+    // In Next.js App Router, params may not be ready on first render
+    // Fall back to reading the ID from the URL path
+    const resolvedId = scenarioId || window.location.pathname.split('/').pop()
+    console.log('useEffect fired — scenarioId:', scenarioId, '| resolvedId:', resolvedId)
+    if (!resolvedId) return
     const id = localStorage.getItem('user_id')
+    console.log('user_id from localStorage:', id)
     if (!id) { router.replace('/'); return }
     setUserId(id)
-    loadScenario(id)
+    loadScenario(resolvedId, id)
   }, [router, scenarioId])
 
-  async function loadScenario(uid: string) {
-    const [{ data: scenarioData }, { data: phasesData }, { data: vocabData }, { data: progressData }] =
+  async function loadScenario(sid: string, uid: string) {
+    try {
+    const [{ data: scenarioData, error: scenarioError }, { data: phasesData, error: phasesError }, { data: vocabData }, { data: progressData }] =
       await Promise.all([
-        supabase.from('scenarios').select('id, title, context').eq('id', scenarioId).single(),
-        supabase.from('scenario_phases').select('id, phase_type, content, order_index').eq('scenario_id', scenarioId).order('order_index'),
-        supabase.from('vocabulary').select('id, word, definition, example_sentence').eq('scenario_id', scenarioId).order('order_index'),
-        supabase.from('user_progress').select('status').eq('user_id', uid).eq('scenario_id', scenarioId).single(),
+        supabase.from('scenarios').select('id, title, context').eq('id', sid).single(),
+        supabase.from('scenario_phases').select('id, phase_type, content, order_index').eq('scenario_id', sid).order('order_index'),
+        supabase.from('vocabulary').select('id, word, definition, example_sentence').eq('scenario_id', sid).order('order_index'),
+        supabase.from('user_progress').select('status').eq('user_id', uid).eq('scenario_id', sid).single(),
       ])
 
-    if (!scenarioData) { router.replace('/dashboard'); return }
+    if (scenarioError) console.error('Scenario error:', scenarioError)
+    if (phasesError) console.error('Phases error:', phasesError)
+    console.log('scenarioData:', scenarioData)
+    console.log('phasesData:', phasesData)
+    console.log('vocabData:', vocabData)
+
+    if (!scenarioData) { setLoading(false); router.replace('/dashboard'); return }
 
     setScenario(scenarioData)
     setPhases((phasesData ?? []) as Phase[])
@@ -70,12 +83,16 @@ export default function ScenarioPage() {
     if (!progressData) {
       await supabase.from('user_progress').upsert({
         user_id: uid,
-        scenario_id: scenarioId,
+        scenario_id: sid,
         status: 'in_progress',
       })
     }
 
     setLoading(false)
+    } catch (err) {
+      console.error('loadScenario failed:', err)
+      setLoading(false)
+    }
   }
 
   async function handlePhaseComplete() {
@@ -87,10 +104,21 @@ export default function ScenarioPage() {
     }
   }
 
-  if (loading || !scenario || phases.length === 0) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <p className="text-gray-400 text-sm">Loading scenario...</p>
+      </div>
+    )
+  }
+
+  if (!scenario || phases.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4">
+        <p className="text-gray-500 text-sm">Could not load this scenario.</p>
+        <button onClick={() => router.push('/dashboard')} className="text-indigo-600 text-sm underline">
+          Back to dashboard
+        </button>
       </div>
     )
   }
