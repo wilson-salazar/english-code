@@ -58,7 +58,7 @@ export default function ScenarioPage() {
       await Promise.all([
         supabase.from('scenarios').select('id, title, context').eq('id', sid).single(),
         supabase.from('scenario_phases').select('id, phase_type, content, order_index').eq('scenario_id', sid).order('order_index'),
-        supabase.from('vocabulary').select('id, word, definition, example_sentence').eq('scenario_id', sid).order('order_index'),
+        supabase.from('vocabulary').select('id, word, definition, example_sentence, phonetic').eq('scenario_id', sid).order('order_index'),
         supabase.from('user_progress').select('status').eq('user_id', uid).eq('scenario_id', sid).single(),
       ])
 
@@ -106,7 +106,7 @@ export default function ScenarioPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-yellow-50 flex items-center justify-center">
         <p className="text-gray-400 text-sm">Loading scenario...</p>
       </div>
     )
@@ -114,7 +114,7 @@ export default function ScenarioPage() {
 
   if (!scenario || phases.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-yellow-50 flex flex-col items-center justify-center gap-4">
         <p className="text-gray-500 text-sm">Could not load this scenario.</p>
         <button onClick={() => router.push('/dashboard')} className="text-indigo-600 text-sm underline">
           Back to dashboard
@@ -127,7 +127,7 @@ export default function ScenarioPage() {
   const progress = ((currentPhaseIndex) / phases.length) * 100
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-yellow-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-100 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">

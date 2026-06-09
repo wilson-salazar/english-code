@@ -7,6 +7,7 @@ interface VocabWord {
   word: string
   definition: string
   example_sentence: string
+  phonetic?: string
 }
 
 interface ImmersionContent {
@@ -21,19 +22,61 @@ interface Props {
   onComplete: () => void
 }
 
+function getBestVoice(): SpeechSynthesisVoice | null {
+  const voices = window.speechSynthesis.getVoices()
+  const preferred = ['Samantha', 'Karen', 'Moira', 'Tessa', 'Serena', 'Victoria']
+  for (const name of preferred) {
+    const match = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'))
+    if (match) return match
+  }
+  const enhanced = voices.find(v =>
+    v.lang.startsWith('en') && (v.name.includes('Enhanced') || v.name.includes('Premium'))
+  )
+  if (enhanced) return enhanced
+  return voices.find(v => v.lang === 'en-US') ?? voices.find(v => v.lang.startsWith('en')) ?? null
+}
+
+function speak(text: string, onEnd?: () => void) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = 'en-US'
+  utterance.rate = 0.82
+  utterance.pitch = 1.1
+
+  const setVoiceAndSpeak = () => {
+    const voice = getBestVoice()
+    if (voice) utterance.voice = voice
+    if (onEnd) utterance.onend = onEnd
+    window.speechSynthesis.speak(utterance)
+  }
+
+  // Voices load async — wait if not ready yet
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.onvoiceschanged = setVoiceAndSpeak
+  } else {
+    setVoiceAndSpeak()
+  }
+}
+
 export default function ImmersionPhase({ content, vocabulary, onComplete }: Props) {
   const { source, text, highlighted_words } = content as unknown as ImmersionContent
   const [selectedWord, setSelectedWord] = useState<VocabWord | null>(null)
   const [revealed, setRevealed] = useState<Set<string>>(new Set())
+  const [speaking, setSpeaking] = useState(false)
+
+  function handleSpeak(word: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    setSpeaking(true)
+    speak(word, () => setSpeaking(false))
+  }
 
   function highlightText(raw: string) {
     const words = highlighted_words ?? []
     let result = raw
 
-    // Replace markdown bold
     result = result.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
 
-    // Highlight vocabulary words
     words.forEach(w => {
       const regex = new RegExp(`\\b(${w})\\b`, 'gi')
       result = result.replace(
@@ -42,9 +85,7 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
       )
     })
 
-    // Line breaks
     result = result.replace(/\n/g, '<br />')
-
     return result
   }
 
@@ -56,6 +97,7 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
       if (match) {
         setSelectedWord(match)
         setRevealed(prev => new Set(prev).add(match.word))
+        speak(match.word)
       }
     }
   }
@@ -64,7 +106,6 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
 
   return (
     <div className="space-y-6">
-      {/* Context label */}
       <div>
         <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Immersion</span>
         <h2 className="text-xl font-bold text-gray-900 mt-1">Read and explore</h2>
@@ -90,16 +131,41 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
         />
       </div>
 
-      {/* Word tooltip */}
+      {/* Word card */}
       {selectedWord && (
-        <div className="bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-4">
+        <div className="bg-white border border-indigo-100 rounded-2xl px-5 py-4 shadow-sm">
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-sm font-bold text-indigo-700">{selectedWord.word}</div>
-              <div className="text-sm text-gray-700 mt-1">{selectedWord.definition}</div>
-              <div className="text-xs text-gray-500 mt-2 italic">"{selectedWord.example_sentence}"</div>
+            <div className="flex-1">
+              {/* Word + speaker + phonetic */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-base font-bold text-indigo-700">{selectedWord.word}</span>
+                <button
+                  onClick={e => handleSpeak(selectedWord.word, e)}
+                  className={`flex items-center justify-center w-7 h-7 rounded-full border transition-colors ${
+                    speaking
+                      ? 'border-indigo-400 bg-indigo-100 text-indigo-600'
+                      : 'border-gray-200 bg-gray-50 text-gray-400 hover:border-indigo-300 hover:text-indigo-500'
+                  }`}
+                  title="Hear pronunciation"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                    <path d="M10 3.75a.75.75 0 0 0-1.264-.546L4.703 7H3.167a.75.75 0 0 0-.7.48A6.985 6.985 0 0 0 2 10c0 .887.165 1.737.468 2.52.111.29.39.48.7.48h1.535l4.033 3.796A.75.75 0 0 0 10 16.25V3.75ZM15.95 5.05a.75.75 0 0 0-1.06 1.061 5.5 5.5 0 0 1 0 7.778.75.75 0 0 0 1.06 1.06 7 7 0 0 0 0-9.899Z" />
+                    <path d="M13.829 7.172a.75.75 0 0 0-1.061 1.06 2.5 2.5 0 0 1 0 3.536.75.75 0 0 0 1.06 1.06 4 4 0 0 0 0-5.656Z" />
+                  </svg>
+                </button>
+                {selectedWord.phonetic && (
+                  <span className="text-xs text-gray-400 font-mono">{selectedWord.phonetic}</span>
+                )}
+              </div>
+              <div className="text-sm text-gray-700 mt-2">{selectedWord.definition}</div>
+              <div className="text-xs text-gray-400 mt-2 italic">"{selectedWord.example_sentence}"</div>
             </div>
-            <button onClick={() => setSelectedWord(null)} className="text-gray-300 hover:text-gray-500 text-lg leading-none shrink-0">×</button>
+            <button
+              onClick={() => setSelectedWord(null)}
+              className="text-gray-300 hover:text-gray-500 text-lg leading-none shrink-0 mt-0.5"
+            >
+              ×
+            </button>
           </div>
         </div>
       )}
@@ -111,11 +177,11 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
           {vocabulary.map(v => (
             <button
               key={v.id}
-              onClick={() => setSelectedWord(v)}
+              onClick={() => { setSelectedWord(v); setRevealed(prev => new Set(prev).add(v.word)); speak(v.word) }}
               className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                 revealed.has(v.word)
-                  ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
-                  : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                  ? 'border-indigo-300 bg-white text-indigo-700 shadow-sm'
+                  : 'border-gray-300 bg-white text-gray-600 hover:border-indigo-200 hover:text-indigo-600 shadow-sm'
               }`}
             >
               {v.word}

@@ -86,7 +86,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-yellow-50 flex items-center justify-center">
         <div className="text-gray-400 text-sm">Loading your path...</div>
       </div>
     )
@@ -96,7 +96,7 @@ export default function DashboardPage() {
   const total = scenarios.length
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-yellow-50">
       {/* Top bar */}
       <header className="bg-white border-b border-gray-100 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
@@ -115,7 +115,7 @@ export default function DashboardPage() {
         {/* Progress header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Your learning path</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-600 mt-1">
             {total === 0
               ? 'Scenarios are being prepared. Check back soon.'
               : `${completed} of ${total} scenarios completed`}
@@ -156,8 +156,8 @@ export default function DashboardPage() {
                     isDone
                       ? 'border-green-200 bg-white hover:border-green-300'
                       : isActive
-                      ? 'border-indigo-300 bg-white shadow-sm shadow-indigo-100 hover:shadow-md cursor-pointer'
-                      : 'border-gray-100 bg-white opacity-50 cursor-not-allowed'
+                      ? 'border-indigo-200 bg-white shadow-md hover:shadow-lg cursor-pointer'
+                      : 'border-gray-200 bg-white opacity-40 cursor-not-allowed'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-4">
@@ -172,7 +172,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <div className="text-sm font-semibold text-gray-900">{scenario.title}</div>
-                        <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{scenario.context}</div>
+                        <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">{scenario.context}</div>
                       </div>
                     </div>
 
