@@ -43,10 +43,8 @@ export default function ScenarioPage() {
     // In Next.js App Router, params may not be ready on first render
     // Fall back to reading the ID from the URL path
     const resolvedId = scenarioId || window.location.pathname.split('/').pop()
-    console.log('useEffect fired — scenarioId:', scenarioId, '| resolvedId:', resolvedId)
     if (!resolvedId) return
     const id = localStorage.getItem('user_id')
-    console.log('user_id from localStorage:', id)
     if (!id) { router.replace('/'); return }
     setUserId(id)
     loadScenario(resolvedId, id)
@@ -61,12 +59,6 @@ export default function ScenarioPage() {
         supabase.from('vocabulary').select('id, word, definition, example_sentence, phonetic').eq('scenario_id', sid).order('order_index'),
         supabase.from('user_progress').select('status').eq('user_id', uid).eq('scenario_id', sid).single(),
       ])
-
-    if (scenarioError) console.error('Scenario error:', scenarioError)
-    if (phasesError) console.error('Phases error:', phasesError)
-    console.log('scenarioData:', scenarioData)
-    console.log('phasesData:', phasesData)
-    console.log('vocabData:', vocabData)
 
     if (!scenarioData) { setLoading(false); router.replace('/dashboard'); return }
 

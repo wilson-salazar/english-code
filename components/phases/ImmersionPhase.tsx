@@ -22,54 +22,19 @@ interface Props {
   onComplete: () => void
 }
 
-function getBestVoice(): SpeechSynthesisVoice | null {
-  const voices = window.speechSynthesis.getVoices()
-  const preferred = ['Samantha', 'Karen', 'Moira', 'Tessa', 'Serena', 'Victoria']
-  for (const name of preferred) {
-    const match = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'))
-    if (match) return match
-  }
-  const enhanced = voices.find(v =>
-    v.lang.startsWith('en') && (v.name.includes('Enhanced') || v.name.includes('Premium'))
-  )
-  if (enhanced) return enhanced
-  return voices.find(v => v.lang === 'en-US') ?? voices.find(v => v.lang.startsWith('en')) ?? null
-}
-
-function speak(text: string, onEnd?: () => void) {
+function speak(text: string) {
   if (typeof window === 'undefined' || !window.speechSynthesis) return
   window.speechSynthesis.cancel()
   const utterance = new SpeechSynthesisUtterance(text)
   utterance.lang = 'en-US'
-  utterance.rate = 0.82
-  utterance.pitch = 1.1
-
-  const setVoiceAndSpeak = () => {
-    const voice = getBestVoice()
-    if (voice) utterance.voice = voice
-    if (onEnd) utterance.onend = onEnd
-    window.speechSynthesis.speak(utterance)
-  }
-
-  // Voices load async — wait if not ready yet
-  if (window.speechSynthesis.getVoices().length === 0) {
-    window.speechSynthesis.onvoiceschanged = setVoiceAndSpeak
-  } else {
-    setVoiceAndSpeak()
-  }
+  utterance.rate = 0.85
+  window.speechSynthesis.speak(utterance)
 }
 
 export default function ImmersionPhase({ content, vocabulary, onComplete }: Props) {
   const { source, text, highlighted_words } = content as unknown as ImmersionContent
   const [selectedWord, setSelectedWord] = useState<VocabWord | null>(null)
   const [revealed, setRevealed] = useState<Set<string>>(new Set())
-  const [speaking, setSpeaking] = useState(false)
-
-  function handleSpeak(word: string, e: React.MouseEvent) {
-    e.stopPropagation()
-    setSpeaking(true)
-    speak(word, () => setSpeaking(false))
-  }
 
   function highlightText(raw: string) {
     const words = highlighted_words ?? []
@@ -136,16 +101,12 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
         <div className="bg-white border border-indigo-100 rounded-2xl px-5 py-4 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              {/* Word + speaker + phonetic */}
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-base font-bold text-indigo-700">{selectedWord.word}</span>
+
                 <button
-                  onClick={e => handleSpeak(selectedWord.word, e)}
-                  className={`flex items-center justify-center w-7 h-7 rounded-full border transition-colors ${
-                    speaking
-                      ? 'border-indigo-400 bg-indigo-100 text-indigo-600'
-                      : 'border-gray-200 bg-gray-50 text-gray-400 hover:border-indigo-300 hover:text-indigo-500'
-                  }`}
+                  onClick={() => speak(selectedWord.word)}
+                  className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 bg-gray-50 text-gray-400 hover:text-indigo-500 transition-colors"
                   title="Hear pronunciation"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
@@ -153,6 +114,7 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
                     <path d="M13.829 7.172a.75.75 0 0 0-1.061 1.06 2.5 2.5 0 0 1 0 3.536.75.75 0 0 0 1.06 1.06 4 4 0 0 0 0-5.656Z" />
                   </svg>
                 </button>
+
                 {selectedWord.phonetic && (
                   <span className="text-xs text-gray-400 font-mono">{selectedWord.phonetic}</span>
                 )}
