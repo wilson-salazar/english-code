@@ -77,7 +77,7 @@ export default function ScenarioPage() {
         user_id: uid,
         scenario_id: sid,
         status: 'in_progress',
-      })
+      }, { onConflict: 'user_id,scenario_id' })
     }
 
     setLoading(false)

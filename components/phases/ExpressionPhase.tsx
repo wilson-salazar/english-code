@@ -75,7 +75,7 @@ export default function ExpressionPhase({ content, scenarioTitle, phaseId, userI
         score_vocabulary: data.scores.vocabulary,
         score_clarity: data.scores.clarity,
         score_naturalness: data.scores.naturalness,
-      })
+      }, { onConflict: 'user_id,scenario_id' })
 
       void avg
 

@@ -67,10 +67,11 @@ export default function DashboardPage() {
 
     const enriched: Scenario[] = (scenarioList ?? []).map((s, i) => {
       const progress = progressMap.get(s.id)
+      const prevCompleted = i === 0 || progressMap.get((scenarioList ?? [])[i - 1]?.id)?.status === 'completed'
       let status: Scenario['status'] = 'locked'
       if (progress) {
         status = progress.status as Scenario['status']
-      } else if (i === 0) {
+      } else if (prevCompleted) {
         status = 'in_progress'
       }
       const scores = progress
