@@ -22,13 +22,30 @@ interface Props {
   onComplete: () => void
 }
 
+function getBestVoice(): SpeechSynthesisVoice | null {
+  const voices = window.speechSynthesis.getVoices()
+  const preferred = ['Samantha', 'Karen', 'Moira', 'Tessa', 'Serena', 'Victoria', 'Zira']
+  for (const name of preferred) {
+    const match = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'))
+    if (match) return match
+  }
+  const enhanced = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Enhanced') || v.name.includes('Premium')))
+  if (enhanced) return enhanced
+  return voices.find(v => v.lang === 'en-US') ?? null
+}
+
 function speak(text: string) {
   if (typeof window === 'undefined' || !window.speechSynthesis) return
   window.speechSynthesis.cancel()
-  const utterance = new SpeechSynthesisUtterance(text)
-  utterance.lang = 'en-US'
-  utterance.rate = 0.85
-  window.speechSynthesis.speak(utterance)
+  setTimeout(() => {
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'en-US'
+    utterance.rate = 0.85
+    utterance.pitch = 1.05
+    const voice = getBestVoice()
+    if (voice) utterance.voice = voice
+    window.speechSynthesis.speak(utterance)
+  }, 100)
 }
 
 export default function ImmersionPhase({ content, vocabulary, onComplete }: Props) {
