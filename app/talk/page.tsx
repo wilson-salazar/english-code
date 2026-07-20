@@ -539,9 +539,23 @@ export default function TalkWithAiPage() {
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
             {topicCategory || 'Preparing a random topic'}
           </div>
-          <h1 className="mt-2 text-2xl font-bold text-white">
-            {topicTitle || 'Your next conversation is loading...'}
-          </h1>
+          <div className="mt-2 flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-white">
+              {topicTitle || 'Your next conversation is loading...'}
+            </h1>
+            <button
+              type="button"
+              onClick={() => speakingMessageId === 'topic-title'
+                ? skipAssistantAudio()
+                : void speakAssistant('topic-title', topicTitle)}
+              disabled={!topicTitle}
+              aria-label={speakingMessageId === 'topic-title' ? 'Stop topic title audio' : 'Listen to topic title'}
+              title={speakingMessageId === 'topic-title' ? 'Stop title audio' : 'Listen to title'}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-300/25 bg-cyan-300/10 text-base transition-all hover:scale-105 hover:bg-cyan-300/20 focus:outline-none focus:ring-2 focus:ring-cyan-300 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              <span aria-hidden="true">{speakingMessageId === 'topic-title' ? '■' : '🔊'}</span>
+            </button>
+          </div>
           <p className="mt-2 text-sm text-slate-300">Every visit starts a different subject from your conversation history.</p>
         </section>
 
