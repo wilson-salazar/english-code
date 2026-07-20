@@ -224,7 +224,7 @@ export default function DashboardPage() {
             <span className="text-gray-400 font-mono text-sm">English Code</span>
           </div>
           <div className="text-right pr-12 sm:pr-0">
-            <div className="text-sm font-semibold text-gray-800">{user?.full_name}</div>
+            <div className="text-sm font-semibold text-slate-100">{user?.full_name}</div>
             <button
               onClick={() => setShowLevelPicker(value => !value)}
               className="text-xs text-indigo-500 hover:text-indigo-700 font-mono transition-colors"
