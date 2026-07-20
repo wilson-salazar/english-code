@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { parseJsonArray } from '@/lib/content'
 
 interface VocabWord {
   id: string
@@ -22,48 +23,64 @@ interface Props {
   onComplete: () => void
 }
 
-function getBestVoice(): SpeechSynthesisVoice | null {
-  const voices = window.speechSynthesis.getVoices()
-  const preferred = ['Samantha', 'Karen', 'Moira', 'Tessa', 'Serena', 'Victoria', 'Zira']
-  for (const name of preferred) {
-    const match = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'))
-    if (match) return match
+const audioCache = new Map<string, HTMLAudioElement>()
+
+async function fetchAudio(text: string): Promise<HTMLAudioElement | null> {
+  if (audioCache.has(text)) return audioCache.get(text)!
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, speaker: 'female' }),
+    })
+    if (!res.ok) return null
+    const blob = await res.blob()
+    if (blob.size === 0) return null
+    const audio = new Audio(URL.createObjectURL(blob))
+    audioCache.set(text, audio)
+    return audio
+  } catch {
+    return null
   }
-  const enhanced = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Enhanced') || v.name.includes('Premium')))
-  if (enhanced) return enhanced
-  return voices.find(v => v.lang === 'en-US') ?? null
 }
 
-function speak(text: string, onEnd?: () => void) {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return
-  window.speechSynthesis.cancel()
-  setTimeout(() => {
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'en-US'
-    utterance.rate = 0.85
-    utterance.pitch = 1.05
-    const voice = getBestVoice()
-    if (voice) utterance.voice = voice
-    if (onEnd) utterance.onend = onEnd
-    window.speechSynthesis.speak(utterance)
-  }, 100)
+function playAudio(audio: HTMLAudioElement): Promise<void> {
+  return new Promise(res => {
+    audio.currentTime = 0
+    audio.onended = () => res()
+    audio.play()
+  })
 }
 
 const LOOP_REPS = 5
 const LOOP_WAIT = 1
 
 export default function ImmersionPhase({ content, vocabulary, onComplete }: Props) {
-  const { source, text, highlighted_words } = content as unknown as ImmersionContent
+  const raw = content as unknown as ImmersionContent
+  const { source, text } = raw
+  const highlighted_words = parseJsonArray<string>(raw.highlighted_words)
+
   const [selectedWord, setSelectedWord] = useState<VocabWord | null>(null)
   const [revealed, setRevealed] = useState<Set<string>>(new Set())
   const [loopState, setLoopState] = useState<{ rep: number; countdown: number } | null>(null)
+  const [loadingWord, setLoadingWord] = useState(false)
   const loopRef = useRef<{ cancelled: boolean }>({ cancelled: false })
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
 
-  function handleLoop(word: string, e: React.MouseEvent) {
+  async function speakWord(word: string) {
+    setLoadingWord(true)
+    const audio = await fetchAudio(word)
+    setLoadingWord(false)
+    if (!audio) return
+    currentAudioRef.current = audio
+    await playAudio(audio)
+  }
+
+  async function handleLoop(word: string, e: React.MouseEvent) {
     e.stopPropagation()
     if (loopState) {
       loopRef.current.cancelled = true
-      window.speechSynthesis.cancel()
+      currentAudioRef.current?.pause()
       setLoopState(null)
       return
     }
@@ -71,11 +88,15 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
     loopRef.current = { cancelled: false }
     const ctx = loopRef.current
 
+    const audio = await fetchAudio(word)
+    if (!audio || ctx.cancelled) return
+
     async function runLoop() {
       for (let rep = 1; rep <= LOOP_REPS; rep++) {
         if (ctx.cancelled) break
         setLoopState({ rep, countdown: 0 })
-        await new Promise<void>(res => speak(word, () => res()))
+        currentAudioRef.current = audio!
+        await playAudio(audio!)
         if (ctx.cancelled || rep === LOOP_REPS) break
         for (let t = LOOP_WAIT; t > 0; t--) {
           if (ctx.cancelled) break
@@ -104,7 +125,7 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
     return result
   }
 
-  function handleTextClick(e: React.MouseEvent<HTMLDivElement>) {
+  async function handleTextClick(e: React.MouseEvent<HTMLDivElement>) {
     const target = e.target as HTMLElement
     if (target.classList.contains('vocab-word')) {
       const wordText = target.dataset.word?.toLowerCase()
@@ -112,9 +133,18 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
       if (match) {
         setSelectedWord(match)
         setRevealed(prev => new Set(prev).add(match.word))
-        speak(match.word)
+        speakWord(match.word)
       }
     }
+  }
+
+  function handleSelectWord(v: VocabWord) {
+    loopRef.current.cancelled = true
+    currentAudioRef.current?.pause()
+    setLoopState(null)
+    setSelectedWord(v)
+    setRevealed(prev => new Set(prev).add(v.word))
+    speakWord(v.word)
   }
 
   const allRevealed = highlighted_words?.every(w => revealed.has(w))
@@ -154,37 +184,46 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-base font-bold text-indigo-700">{selectedWord.word}</span>
 
-                {/* Speaker + Loop grouped */}
-                <div className="flex items-center rounded-full border border-gray-200 bg-gray-50 overflow-hidden">
-                  <button
-                    onClick={() => speak(selectedWord.word)}
-                    className="flex items-center justify-center w-7 h-7 text-gray-400 hover:text-indigo-500 transition-colors"
-                    title="Hear pronunciation"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                      <path d="M10 3.75a.75.75 0 0 0-1.264-.546L4.703 7H3.167a.75.75 0 0 0-.7.48A6.985 6.985 0 0 0 2 10c0 .887.165 1.737.468 2.52.111.29.39.48.7.48h1.535l4.033 3.796A.75.75 0 0 0 10 16.25V3.75ZM15.95 5.05a.75.75 0 0 0-1.06 1.061 5.5 5.5 0 0 1 0 7.778.75.75 0 0 0 1.06 1.06 7 7 0 0 0 0-9.899Z" />
-                      <path d="M13.829 7.172a.75.75 0 0 0-1.061 1.06 2.5 2.5 0 0 1 0 3.536.75.75 0 0 0 1.06 1.06 4 4 0 0 0 0-5.656Z" />
+                {/* Speaker button */}
+                <button
+                  onClick={() => speakWord(selectedWord.word)}
+                  disabled={loadingWord}
+                  className="w-8 h-8 rounded-full bg-indigo-50 hover:bg-indigo-100 flex items-center justify-center transition-colors disabled:opacity-40"
+                  title="Hear pronunciation"
+                >
+                  {loadingWord ? (
+                    <svg className="w-3.5 h-3.5 text-indigo-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                     </svg>
-                  </button>
-                  <div className="w-px h-4 bg-gray-200" />
-                  <button
-                    onClick={e => handleLoop(selectedWord.word, e)}
-                    className={`flex items-center justify-center w-7 h-7 transition-colors ${
-                      loopState ? 'text-rose-500 bg-rose-50' : 'text-gray-400 hover:text-indigo-500'
-                    }`}
-                    title={loopState ? 'Stop loop' : `Repeat ${LOOP_REPS}× with ${LOOP_WAIT}s pause`}
-                  >
-                    {loopState ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
-                        <rect x="5" y="5" width="10" height="10" rx="1" />
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                        <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H5.498a.75.75 0 0 0-.75.75v3.232a.75.75 0 0 0 1.5 0v-1.54l.308.305A7 7 0 0 0 16.76 10a.75.75 0 0 0-1.449-.576ZM4.688 8.576A7 7 0 0 1 15.502 10a.75.75 0 0 0 1.449-.576 8.5 8.5 0 0 0-16.256.074.75.75 0 0 0 1.387.568l.606-1.49Z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-indigo-500">
+                      <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06ZM18.584 5.106a.75.75 0 0 1 1.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 0 1-1.06-1.06 8.25 8.25 0 0 0 0-11.668.75.75 0 0 1 0-1.06Z"/>
+                      <path d="M15.932 7.757a.75.75 0 0 1 1.061 0 6 6 0 0 1 0 8.486.75.75 0 0 1-1.06-1.061 4.5 4.5 0 0 0 0-6.364.75.75 0 0 1 0-1.06Z"/>
+                    </svg>
+                  )}
+                </button>
+
+                {/* Loop button */}
+                <button
+                  onClick={e => handleLoop(selectedWord.word, e)}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                    loopState
+                      ? 'bg-rose-100 hover:bg-rose-200'
+                      : 'bg-indigo-50 hover:bg-indigo-100'
+                  }`}
+                  title={loopState ? 'Stop loop' : `Repeat ${LOOP_REPS}× with ${LOOP_WAIT}s pause`}
+                >
+                  {loopState ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-rose-500">
+                      <path fillRule="evenodd" d="M4.5 7.5a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-9Z" clipRule="evenodd"/>
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-indigo-500">
+                      <path fillRule="evenodd" d="M12 5.25c1.213 0 2.415.046 3.605.135a3.256 3.256 0 0 1 3.01 3.01c.044.583.077 1.17.1 1.759L17.03 8.47a.75.75 0 1 0-1.06 1.06l3 3a.75.75 0 0 0 1.06 0l3-3a.75.75 0 0 0-1.06-1.06l-1.752 1.751c-.023-.65-.06-1.296-.108-1.939a4.756 4.756 0 0 0-4.392-4.392 49.422 49.422 0 0 0-7.436 0A4.756 4.756 0 0 0 3.89 8.282c-.017.224-.033.447-.046.672a.75.75 0 1 0 1.497.092c.013-.217.028-.434.044-.651a3.256 3.256 0 0 1 3.01-3.01c1.19-.09 2.392-.135 3.605-.135Zm-6.97 6.22a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.752-1.751c.023.65.06 1.296.108 1.939a4.756 4.756 0 0 0 4.392 4.392 49.413 49.413 0 0 0 7.436 0 4.756 4.756 0 0 0 4.392-4.392c.017-.224.033-.447.046-.672a.75.75 0 0 0-1.497-.092c-.013.217-.028.434-.044.651a3.256 3.256 0 0 1-3.01 3.01 47.893 47.893 0 0 1-7.21 0 3.256 3.256 0 0 1-3.01-3.01 47.859 47.859 0 0 1-.1-1.759L6.97 18.53a.75.75 0 0 0 1.06-1.06l-3-3Z" clipRule="evenodd"/>
+                    </svg>
+                  )}
+                </button>
 
                 {selectedWord.phonetic && (
                   <span className="text-xs text-gray-400 font-mono">{selectedWord.phonetic}</span>
@@ -198,10 +237,15 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
                 )}
               </div>
               <div className="text-sm text-gray-700 mt-2">{selectedWord.definition}</div>
-              <div className="text-xs text-gray-400 mt-2 italic">"{selectedWord.example_sentence}"</div>
+              <div className="text-xs text-gray-400 mt-2 italic">&ldquo;{selectedWord.example_sentence}&rdquo;</div>
             </div>
             <button
-              onClick={() => { loopRef.current.cancelled = true; window.speechSynthesis.cancel(); setLoopState(null); setSelectedWord(null) }}
+              onClick={() => {
+                loopRef.current.cancelled = true
+                currentAudioRef.current?.pause()
+                setLoopState(null)
+                setSelectedWord(null)
+              }}
               className="text-gray-300 hover:text-gray-500 text-lg leading-none shrink-0 mt-0.5"
             >
               ×
@@ -217,7 +261,7 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
           {vocabulary.map(v => (
             <button
               key={v.id}
-              onClick={() => { loopRef.current.cancelled = true; setLoopState(null); setSelectedWord(v); setRevealed(prev => new Set(prev).add(v.word)); speak(v.word) }}
+              onClick={() => handleSelectWord(v)}
               className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                 revealed.has(v.word)
                   ? 'border-indigo-300 bg-white text-indigo-700 shadow-sm'

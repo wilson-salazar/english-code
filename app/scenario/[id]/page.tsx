@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import ImmersionPhase from '@/components/phases/ImmersionPhase'
+import ListeningPhase from '@/components/phases/ListeningPhase'
 import ComprehensionPhase from '@/components/phases/ComprehensionPhase'
+import SpeakingPhase from '@/components/phases/SpeakingPhase'
 import ExpressionPhase from '@/components/phases/ExpressionPhase'
 
 interface Scenario {
@@ -15,7 +17,7 @@ interface Scenario {
 
 interface Phase {
   id: string
-  phase_type: 'immersion' | 'comprehension' | 'expression'
+  phase_type: 'immersion' | 'listening' | 'comprehension' | 'speaking' | 'expression'
   content: Record<string, unknown>
   order_index: number
 }
@@ -39,18 +41,7 @@ export default function ScenarioPage() {
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
 
-  useEffect(() => {
-    // In Next.js App Router, params may not be ready on first render
-    // Fall back to reading the ID from the URL path
-    const resolvedId = scenarioId || window.location.pathname.split('/').pop()
-    if (!resolvedId) return
-    const id = localStorage.getItem('user_id')
-    if (!id) { router.replace('/'); return }
-    setUserId(id)
-    loadScenario(resolvedId, id)
-  }, [router, scenarioId])
-
-  async function loadScenario(sid: string, uid: string) {
+  const loadScenario = useCallback(async (sid: string, uid: string) => {
     try {
     const [{ data: scenarioData, error: scenarioError }, { data: phasesData, error: phasesError }, { data: vocabData }, { data: progressData }] =
       await Promise.all([
@@ -60,7 +51,8 @@ export default function ScenarioPage() {
         supabase.from('user_progress').select('status').eq('user_id', uid).eq('scenario_id', sid).single(),
       ])
 
-    if (!scenarioData) { setLoading(false); router.replace('/dashboard'); return }
+    if (scenarioError || !scenarioData) { setLoading(false); router.replace('/dashboard'); return }
+    if (phasesError) throw phasesError
 
     setScenario(scenarioData)
     setPhases((phasesData ?? []) as Phase[])
@@ -85,7 +77,42 @@ export default function ScenarioPage() {
       console.error('loadScenario failed:', err)
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function initializeScenario() {
+      // In Next.js App Router, params may not be ready on first render.
+      const resolvedId = scenarioId || window.location.pathname.split('/').pop()
+      if (!resolvedId) return
+
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (!authUser) {
+        if (!cancelled) router.replace('/')
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('users')
+        .select('id')
+        .eq('auth_user_id', authUser.id)
+        .maybeSingle()
+
+      if (cancelled) return
+      if (!profile) {
+        await supabase.auth.signOut()
+        router.replace('/')
+        return
+      }
+
+      setUserId(profile.id)
+      await loadScenario(resolvedId, profile.id)
+    }
+
+    void initializeScenario()
+    return () => { cancelled = true }
+  }, [loadScenario, router, scenarioId])
 
   async function handlePhaseComplete() {
     const isLast = currentPhaseIndex === phases.length - 1
@@ -124,14 +151,48 @@ export default function ScenarioPage() {
       <header className="bg-white border-b border-gray-100 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => {
+              if (currentPhaseIndex === 0) {
+                router.push('/dashboard')
+              } else {
+                setCurrentPhaseIndex(i => i - 1)
+              }
+            }}
             className="text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1"
           >
-            ← Dashboard
+            {currentPhaseIndex === 0 ? '← Dashboard' : '← Back'}
           </button>
           <div className="text-center">
             <div className="text-sm font-semibold text-gray-900">{scenario.title}</div>
-            <div className="text-xs text-gray-400 mt-0.5 capitalize">{currentPhase.phase_type}</div>
+            <div className="flex items-center justify-center gap-1 mt-0.5">
+              {currentPhase.phase_type === 'immersion' && (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-gray-400">
+                  <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/>
+                  <path fillRule="evenodd" d="M1.38 8a6.585 6.585 0 0 1 1.56-2.724A6.5 6.5 0 0 1 8 3.5a6.5 6.5 0 0 1 5.06 1.776A6.585 6.585 0 0 1 14.62 8a6.585 6.585 0 0 1-1.56 2.724A6.5 6.5 0 0 1 8 12.5a6.5 6.5 0 0 1-5.06-1.776A6.585 6.585 0 0 1 1.38 8Z" clipRule="evenodd"/>
+                </svg>
+              )}
+              {currentPhase.phase_type === 'listening' && (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-gray-400">
+                  <path d="M7.557 2.066A.75.75 0 0 1 8 2.75v10.5a.75.75 0 0 1-1.248.56L3.59 11H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.59l3.162-2.81a.75.75 0 0 1 .805-.124ZM12.95 3.05a.75.75 0 1 0-1.06 1.06 5.5 5.5 0 0 1 0 7.78.75.75 0 1 0 1.06 1.06 7 7 0 0 0 0-9.9ZM10.828 5.172a.75.75 0 1 0-1.06 1.06 2.5 2.5 0 0 1 0 3.536.75.75 0 1 0 1.06 1.06 4 4 0 0 0 0-5.656Z"/>
+                </svg>
+              )}
+              {currentPhase.phase_type === 'comprehension' && (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-gray-400">
+                  <path fillRule="evenodd" d="M15 8A7 7 0 1 1 1 8a7 7 0 0 1 14 0ZM9 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6.75 8a.75.75 0 0 0 0 1.5h.75v1.75a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8.25 8h-1.5Z" clipRule="evenodd"/>
+                </svg>
+              )}
+              {currentPhase.phase_type === 'speaking' && (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-gray-400">
+                  <path d="M4 6a4 4 0 1 1 8 0v3a4 4 0 0 1-8 0V6ZM1.5 9.482a.75.75 0 0 1 .75.75 5.75 5.75 0 0 0 11.5 0 .75.75 0 0 1 1.5 0 7.25 7.25 0 0 1-6.5 7.21V14.5h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-7.257A7.251 7.251 0 0 1 .75 10.232a.75.75 0 0 1 .75-.75Z"/>
+                </svg>
+              )}
+              {currentPhase.phase_type === 'expression' && (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-gray-400">
+                  <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474ZM4.75 3.5A2.25 2.25 0 0 0 2.5 5.75v5.5A2.25 2.25 0 0 0 4.75 13.5h5.5a2.25 2.25 0 0 0 2.25-2.25v-2a.75.75 0 0 0-1.5 0v2a.75.75 0 0 1-.75.75h-5.5a.75.75 0 0 1-.75-.75v-5.5a.75.75 0 0 1 .75-.75h2a.75.75 0 0 0 0-1.5h-2Z"/>
+                </svg>
+              )}
+              <span className="text-xs text-gray-400 capitalize">{currentPhase.phase_type}</span>
+            </div>
           </div>
           <div className="text-xs text-gray-400 font-mono">
             {currentPhaseIndex + 1} / {phases.length}
@@ -155,9 +216,22 @@ export default function ScenarioPage() {
             onComplete={handlePhaseComplete}
           />
         )}
+        {currentPhase.phase_type === 'listening' && (
+          <ListeningPhase
+            content={currentPhase.content}
+            onComplete={handlePhaseComplete}
+          />
+        )}
         {currentPhase.phase_type === 'comprehension' && (
           <ComprehensionPhase
             content={currentPhase.content}
+            onComplete={handlePhaseComplete}
+          />
+        )}
+        {currentPhase.phase_type === 'speaking' && (
+          <SpeakingPhase
+            content={currentPhase.content}
+            scenarioTitle={scenario.title}
             onComplete={handlePhaseComplete}
           />
         )}
