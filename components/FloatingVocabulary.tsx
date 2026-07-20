@@ -45,14 +45,31 @@ export default function FloatingVocabulary() {
     if (!profile) return
     setUserId(profile.id)
 
-    const { data } = await supabase
+    const vocabularyResult = await supabase
       .from('personal_vocabulary')
       .select('id, term, is_learned, spanish_meaning')
       .eq('user_id', profile.id)
       .eq('is_learned', false)
       .order('created_at', { ascending: false })
 
-    const vocabulary = data ?? []
+    let vocabulary: PersonalTerm[]
+    if (vocabularyResult.error) {
+      // Keep the vocabulary visible if PostgREST has not refreshed a newly added column yet.
+      const fallbackResult = await supabase
+        .from('personal_vocabulary')
+        .select('id, term, is_learned')
+        .eq('user_id', profile.id)
+        .eq('is_learned', false)
+        .order('created_at', { ascending: false })
+
+      if (fallbackResult.error) {
+        console.error('Could not load personal vocabulary:', fallbackResult.error)
+        return
+      }
+      vocabulary = (fallbackResult.data ?? []).map(item => ({ ...item, spanish_meaning: null }))
+    } else {
+      vocabulary = vocabularyResult.data ?? []
+    }
     setTerms(vocabulary)
 
     const missingMeanings = vocabulary

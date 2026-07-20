@@ -148,14 +148,29 @@ export default function TalkWithAiPage() {
   }
 
   const loadActiveTerms = useCallback(async (userId: string) => {
-    const { data } = await supabase
+    const result = await supabase
       .from('personal_vocabulary')
       .select('id, term, spanish_meaning')
       .eq('user_id', userId)
       .eq('is_learned', false)
       .order('created_at')
       .limit(10)
-    return data ?? []
+
+    if (!result.error) return result.data ?? []
+
+    const fallback = await supabase
+      .from('personal_vocabulary')
+      .select('id, term')
+      .eq('user_id', userId)
+      .eq('is_learned', false)
+      .order('created_at')
+      .limit(10)
+
+    if (fallback.error) {
+      console.error('Could not load conversation vocabulary:', fallback.error)
+      return []
+    }
+    return (fallback.data ?? []).map(item => ({ ...item, spanish_meaning: null }))
   }, [])
 
   const startConversation = useCallback(async (userId: string, userLevel: string, selectedTerms: PersonalTerm[]) => {
