@@ -125,15 +125,15 @@ export default function ScenarioPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-yellow-50 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">Loading scenario...</p>
+      <div className="learning-theme min-h-screen flex items-center justify-center">
+        <p className="text-slate-400 text-sm">Loading scenario...</p>
       </div>
     )
   }
 
   if (!scenario || phases.length === 0) {
     return (
-      <div className="min-h-screen bg-yellow-50 flex flex-col items-center justify-center gap-4">
+      <div className="learning-theme min-h-screen flex flex-col items-center justify-center gap-4">
         <p className="text-gray-500 text-sm">Could not load this scenario.</p>
         <button onClick={() => router.push('/dashboard')} className="text-indigo-600 text-sm underline">
           Back to dashboard
@@ -146,9 +146,9 @@ export default function ScenarioPage() {
   const progress = ((currentPhaseIndex) / phases.length) * 100
 
   return (
-    <div className="min-h-screen bg-yellow-50">
+    <div className="learning-theme min-h-screen bg-yellow-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 px-6 py-4">
+      <header className="border-b border-white/10 bg-slate-950/90 px-6 py-4 backdrop-blur">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <button
             onClick={() => {

@@ -172,18 +172,18 @@ export default function FloatingVocabulary() {
       {isOpen ? (
         <section
           aria-label="Personal vocabulary"
-          className="w-[calc(100vw-2.5rem)] max-w-sm overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-2xl"
+          className="w-[calc(100vw-2.5rem)] max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-slate-900 text-white shadow-2xl shadow-black/40"
         >
-          <div className="flex items-start justify-between gap-4 bg-indigo-600 px-5 py-4 text-white">
+          <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-gradient-to-r from-indigo-600/35 to-cyan-500/15 px-5 py-4 text-white">
             <div>
               <h2 className="font-semibold">My new words</h2>
-              <p className="mt-0.5 text-xs text-indigo-200">AI will use up to 10 in each new topic.</p>
+              <p className="mt-0.5 text-xs text-slate-300">AI will use up to 10 in each new topic.</p>
             </div>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
               aria-label="Close vocabulary"
-              className="rounded-lg p-1 text-indigo-200 transition-colors hover:bg-indigo-500 hover:text-white"
+              className="rounded-lg p-1 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
             >
               <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2">
                 <path d="M6 6l12 12M18 6 6 18" />
@@ -191,8 +191,8 @@ export default function FloatingVocabulary() {
             </button>
           </div>
 
-          <form onSubmit={handleAddTerm} className="border-b border-gray-100 p-4">
-            <label htmlFor="personal-term" className="mb-1.5 block text-xs font-semibold text-gray-600">
+          <form onSubmit={handleAddTerm} className="border-b border-white/10 p-4">
+            <label htmlFor="personal-term" className="mb-1.5 block text-xs font-semibold text-slate-300">
               New word or phrase
             </label>
             <div className="flex gap-2">
@@ -203,13 +203,13 @@ export default function FloatingVocabulary() {
                 disabled={!userId}
                 maxLength={120}
                 placeholder={userId ? 'e.g. delicate balance' : 'Sign in to save new words'}
-                className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-indigo-500"
+                className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30"
                 autoFocus
               />
               <button
                 type="submit"
                 disabled={!userId || saving || !term.trim()}
-                className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Add
               </button>
@@ -225,16 +225,16 @@ export default function FloatingVocabulary() {
             {terms.length === 0 ? (
               <div className="py-5 text-center">
                 <div className="text-3xl">✨</div>
-                <p className="mt-2 text-sm font-medium text-gray-700">Your list is empty</p>
-                <p className="mt-1 text-xs text-gray-400">Add anything you want to practice later.</p>
+                <p className="mt-2 text-sm font-medium text-slate-200">Your list is empty</p>
+                <p className="mt-1 text-xs text-slate-400">Add anything you want to practice later.</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {terms.map(item => (
-                  <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-3 py-2.5">
+                  <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
                     <span className="min-w-0 break-words">
-                      <span className="block text-sm font-medium text-gray-700">{item.term}</span>
-                      <span className="mt-0.5 block text-xs text-indigo-500">
+                      <span className="block text-sm font-medium text-slate-100">{item.term}</span>
+                      <span className="mt-0.5 block text-xs text-indigo-200">
                         {item.spanish_meaning || 'Traduciendo…'}
                       </span>
                     </span>
@@ -254,24 +254,24 @@ export default function FloatingVocabulary() {
       ) : (
         <section
           aria-label="Quick vocabulary entry"
-          className="w-[calc(100vw-2rem)] max-w-sm rounded-2xl border border-indigo-100 bg-white p-3 shadow-xl shadow-indigo-200/60"
+          className="w-[calc(100vw-2rem)] max-w-sm rounded-2xl border border-white/10 bg-slate-900/95 p-3 text-white shadow-xl shadow-black/40 backdrop-blur"
         >
           <div className="mb-2 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-cyan-300/10 text-cyan-300">
                 <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               </span>
               <div>
-                <h2 className="text-xs font-bold text-gray-800">Save a new word</h2>
-                <p className="text-[11px] text-gray-400">Use it later in Talk with AI</p>
+                <h2 className="text-xs font-bold text-slate-100">Save a new word</h2>
+                <p className="text-[11px] text-slate-400">Use it later in Talk with AI</p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => { setIsOpen(true); setMessage('') }}
-              className="rounded-lg px-2 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50"
+              className="rounded-lg px-2 py-1 text-xs font-semibold text-indigo-300 hover:bg-white/10"
             >
               My list {terms.length > 0 ? `(${terms.length})` : ''}
             </button>
@@ -286,13 +286,13 @@ export default function FloatingVocabulary() {
               disabled={!userId}
               maxLength={120}
               placeholder={userId ? 'Word or phrase...' : 'Sign in to save words'}
-              className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-50"
+              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30 disabled:opacity-50"
             />
             <button
               type="submit"
               aria-label="Save word"
               disabled={!userId || saving || !term.trim()}
-              className="rounded-xl bg-indigo-600 px-3.5 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-35"
+              className="rounded-xl bg-cyan-500 px-3.5 py-2 text-sm font-bold text-slate-950 transition-colors hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-35"
             >
               +
             </button>

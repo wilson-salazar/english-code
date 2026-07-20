@@ -24,3 +24,133 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Shared visual language for the authenticated learning experience. */
+.learning-theme {
+  background: #020617;
+  color: #f8fafc;
+  color-scheme: dark;
+}
+
+.learning-theme .bg-yellow-50 {
+  background-color: #020617;
+}
+
+.learning-theme .bg-white {
+  background-color: rgb(255 255 255 / 0.05);
+}
+
+.learning-theme .bg-gray-50,
+.learning-theme .bg-gray-100 {
+  background-color: rgb(255 255 255 / 0.06);
+}
+
+.learning-theme .bg-gray-200 {
+  background-color: rgb(255 255 255 / 0.10);
+}
+
+.learning-theme .bg-indigo-50,
+.learning-theme .bg-indigo-100 {
+  background-color: rgb(99 102 241 / 0.14);
+}
+
+.learning-theme .bg-green-50,
+.learning-theme .bg-green-100 {
+  background-color: rgb(52 211 153 / 0.12);
+}
+
+.learning-theme .bg-violet-50,
+.learning-theme .bg-blue-50,
+.learning-theme .bg-rose-50,
+.learning-theme .bg-amber-50,
+.learning-theme .bg-orange-50,
+.learning-theme .bg-orange-100 {
+  background-color: rgb(255 255 255 / 0.06);
+}
+
+.learning-theme .text-gray-900,
+.learning-theme .text-gray-800 {
+  color: #f8fafc;
+}
+
+.learning-theme .text-gray-700,
+.learning-theme .text-gray-600 {
+  color: #cbd5e1;
+}
+
+.learning-theme .text-gray-500,
+.learning-theme .text-gray-400 {
+  color: #94a3b8;
+}
+
+.learning-theme .text-gray-300 {
+  color: #64748b;
+}
+
+.learning-theme .text-indigo-900,
+.learning-theme .text-orange-900 {
+  color: #e2e8f0;
+}
+
+.learning-theme .text-indigo-700,
+.learning-theme .text-indigo-600,
+.learning-theme .text-indigo-500,
+.learning-theme .text-indigo-400 {
+  color: #a5b4fc;
+}
+
+.learning-theme .text-teal-600,
+.learning-theme .text-teal-500,
+.learning-theme .text-teal-400 {
+  color: #67e8f9;
+}
+
+.learning-theme .text-orange-700,
+.learning-theme .text-orange-600,
+.learning-theme .text-orange-500 {
+  color: #fcd34d;
+}
+
+.learning-theme .border-gray-50,
+.learning-theme .border-gray-100,
+.learning-theme .border-gray-200,
+.learning-theme .border-gray-300,
+.learning-theme .border-white {
+  border-color: rgb(255 255 255 / 0.10);
+}
+
+.learning-theme .border-indigo-100,
+.learning-theme .border-indigo-200,
+.learning-theme .border-indigo-500 {
+  border-color: rgb(129 140 248 / 0.30);
+}
+
+.learning-theme .border-green-200,
+.learning-theme .border-green-300 {
+  border-color: rgb(52 211 153 / 0.26);
+}
+
+.learning-theme .border-teal-50,
+.learning-theme .border-teal-100,
+.learning-theme .border-orange-100,
+.learning-theme .border-orange-200 {
+  border-color: rgb(103 232 249 / 0.18);
+}
+
+.learning-theme input,
+.learning-theme textarea {
+  background-color: rgb(255 255 255 / 0.05);
+  border-color: rgb(255 255 255 / 0.10);
+  color: #f8fafc;
+}
+
+.learning-theme input::placeholder,
+.learning-theme textarea::placeholder {
+  color: #64748b;
+}
+
+.learning-theme .shadow-sm,
+.learning-theme .shadow-md,
+.learning-theme .shadow-lg {
+  --tw-shadow-color: rgb(0 0 0 / 0.28);
+}

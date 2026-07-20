@@ -205,8 +205,8 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-yellow-50 flex items-center justify-center">
-        <div className="text-gray-400 text-sm">Loading your path...</div>
+      <div className="learning-theme min-h-screen flex items-center justify-center">
+        <div className="text-slate-400 text-sm">Loading your path...</div>
       </div>
     )
   }
@@ -215,9 +215,9 @@ export default function DashboardPage() {
   const total = scenarios.length
 
   return (
-    <div className="min-h-screen bg-yellow-50">
+    <div className="learning-theme min-h-screen bg-yellow-50">
       {/* Top bar */}
-      <header className="relative bg-white border-b border-gray-100 px-6 py-4">
+      <header className="relative border-b border-white/10 bg-slate-950/90 px-6 py-4 backdrop-blur">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-indigo-600 font-mono text-base font-bold">{'</>'}</span>

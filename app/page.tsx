@@ -174,15 +174,15 @@ export default function AuthPage() {
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="learning-theme min-h-screen bg-white flex items-center justify-center">
         <div className="text-sm text-gray-400">Loading your profile...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white flex">
-      <div className="hidden lg:flex w-2/5 bg-indigo-600 flex-col justify-between p-12">
+    <div className="learning-theme min-h-screen bg-white flex">
+      <div className="hidden lg:flex w-2/5 flex-col justify-between border-r border-white/10 bg-gradient-to-br from-indigo-600/30 via-violet-600/15 to-cyan-500/10 p-12">
         <div className="flex items-center gap-2">
           <span className="text-white font-mono text-lg font-bold">{'</>'}</span>
           <span className="text-indigo-200 font-mono text-sm">English Code</span>

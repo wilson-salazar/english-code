@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-yellow-50 flex items-center justify-center px-6 py-12">
+    <main className="learning-theme min-h-screen bg-yellow-50 flex items-center justify-center px-6 py-12">
       <section className="w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
         <div className="flex items-center gap-2 mb-8">
           <span className="text-indigo-600 font-mono text-lg font-bold">{'</>'}</span>
