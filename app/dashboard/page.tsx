@@ -220,7 +220,7 @@ export default function DashboardPage() {
   const total = scenarios.length
 
   return (
-    <div className="learning-theme min-h-screen bg-yellow-50">
+    <div className="learning-theme min-h-screen bg-slate-950 text-slate-100">
       {/* Top bar */}
       <header className="relative border-b border-white/10 bg-slate-950/90 px-6 py-4 backdrop-blur">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -242,7 +242,7 @@ export default function DashboardPage() {
           onClick={handleSignOut}
           disabled={signingOut}
           aria-label="Log out"
-          className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 sm:px-3 py-2 text-xs font-medium text-gray-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-wait disabled:opacity-60"
+          className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 sm:px-3 py-2 text-xs font-medium text-slate-300 transition-colors hover:border-red-300/30 hover:bg-red-400/10 hover:text-red-200 disabled:cursor-wait disabled:opacity-60"
         >
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10 17l5-5-5-5" />
@@ -254,12 +254,12 @@ export default function DashboardPage() {
       </header>
 
       {showLevelPicker && (
-        <div className="bg-indigo-50 border-b border-indigo-100 px-6 py-4">
+        <div className="border-b border-white/10 bg-slate-900 px-6 py-4">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between gap-4 mb-3">
               <div>
-                <div className="text-sm font-semibold text-indigo-950">Choose a learning program</div>
-                <div className="text-xs text-indigo-600 mt-0.5">You can switch levels anytime. Your progress is preserved.</div>
+                <div className="text-sm font-semibold text-slate-100">Choose a learning program</div>
+                <div className="mt-0.5 text-xs text-indigo-300">You can switch levels anytime. Your progress is preserved.</div>
               </div>
               <button
                 onClick={() => setShowLevelPicker(false)}
@@ -278,12 +278,12 @@ export default function DashboardPage() {
                     disabled={updatingLevel}
                     className={`rounded-xl border px-3 py-2 text-left transition-colors disabled:opacity-50 ${
                       isCurrent
-                        ? 'border-indigo-500 bg-white ring-1 ring-indigo-500'
-                        : 'border-indigo-100 bg-white hover:border-indigo-300'
+                        ? 'border-indigo-400 bg-indigo-500/15 ring-1 ring-indigo-400'
+                        : 'border-white/10 bg-white/5 hover:border-indigo-400/50'
                     }`}
                   >
                     <div className="text-xs font-mono font-bold text-indigo-600">{level.code}</div>
-                    <div className="text-xs text-gray-600 mt-0.5">{level.name}</div>
+                    <div className="mt-0.5 text-xs text-slate-300">{level.name}</div>
                   </button>
                 )
               })}
@@ -326,7 +326,7 @@ export default function DashboardPage() {
         <div className="min-w-0 flex-1 space-y-8">
 
         {activeView === 'talk' && (
-        <section className="overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-indigo-600/30 via-violet-600/15 to-cyan-500/10 p-8 text-white shadow-xl shadow-black/20">
+        <section className="overflow-hidden rounded-3xl border border-indigo-400/25 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 text-white shadow-xl shadow-black/20">
           <div className="flex items-center justify-between gap-5">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">New practice space</div>
@@ -431,11 +431,11 @@ export default function DashboardPage() {
                   { label: 'Naturalness', value: stats.avgNaturalness, color: 'bg-blue-500' },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500 w-24 shrink-0">{label}</span>
-                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <span className="w-24 shrink-0 text-xs text-slate-400">{label}</span>
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
                       <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${value}%` }}/>
                     </div>
-                    <span className="text-xs font-mono text-gray-500 w-8 text-right">{value}%</span>
+                    <span className="w-8 text-right font-mono text-xs text-slate-400">{value}%</span>
                   </div>
                 ))}
               </div>
@@ -447,14 +447,14 @@ export default function DashboardPage() {
         {activeView === 'learning' && (
         <section>
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Your learning path</h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <h1 className="text-2xl font-bold text-slate-100">Your learning path</h1>
+            <p className="mt-1 text-sm text-slate-400">
               {total === 0
                 ? 'Scenarios are being prepared. Check back soon.'
                 : `${completed} of ${total} scenarios completed`}
             </p>
             {total > 0 && (
-              <div className="mt-4 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
                 <div
                   className="h-full bg-indigo-500 rounded-full transition-all"
                   style={{ width: `${total > 0 ? (completed / total) * 100 : 0}%` }}
@@ -466,8 +466,8 @@ export default function DashboardPage() {
           {total === 0 && (
             <div className="text-center py-24">
               <div className="text-5xl mb-4">📭</div>
-              <p className="text-gray-400 text-sm">No scenarios available yet for your level.</p>
-              <p className="text-gray-300 text-xs mt-1">We&apos;re working on it.</p>
+              <p className="text-sm text-slate-400">No scenarios available yet for your level.</p>
+              <p className="mt-1 text-xs text-slate-500">We&apos;re working on it.</p>
             </div>
           )}
 
@@ -485,10 +485,10 @@ export default function DashboardPage() {
                     disabled={isLocked}
                     className={`w-full text-left rounded-2xl border px-5 py-4 transition-all ${
                       isDone
-                        ? 'border-green-200 bg-white hover:border-green-300'
+                        ? 'border-emerald-300/25 bg-white/5 hover:border-emerald-300/40'
                         : isActive
-                        ? 'border-indigo-200 bg-white shadow-md hover:shadow-lg cursor-pointer'
-                        : 'border-gray-200 bg-white opacity-40 cursor-not-allowed'
+                        ? 'border-indigo-400/35 bg-white/5 shadow-md hover:border-indigo-300/60 hover:bg-white/10 hover:shadow-lg cursor-pointer'
+                        : 'border-white/10 bg-white/5 opacity-40 cursor-not-allowed'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-4">
@@ -511,8 +511,8 @@ export default function DashboardPage() {
                           )}
                         </div>
                         <div>
-                          <div className="text-sm font-semibold text-gray-900">{scenario.title}</div>
-                          <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">{scenario.context}</div>
+                          <div className="text-sm font-semibold text-slate-100">{scenario.title}</div>
+                          <div className="mt-0.5 line-clamp-1 text-xs text-slate-400">{scenario.context}</div>
                           <div className="flex items-center gap-1 mt-1.5">
                             {[
                               { label: 'Read', icon: 'M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z' },
