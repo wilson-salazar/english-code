@@ -9,6 +9,8 @@ English Code is an interactive English-learning application for developers, QA e
 - Reading, listening, comprehension, speaking, and writing activities.
 - Dialogue audio using ElevenLabs voices (Adam and Jessa).
 - AI feedback for written and spoken answers using Anthropic.
+- Personal word and phrase list with duplicate prevention and learned status.
+- `Talk with AI` voice conversations that use up to 10 saved terms and avoid repeated topics.
 - Progress tracking per user and per level.
 - Local Supabase stack with PostgreSQL, Auth, Studio, migrations, seed data, and Mailpit.
 

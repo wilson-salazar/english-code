@@ -289,6 +289,24 @@ export default function DashboardPage() {
 
       <main className="max-w-2xl mx-auto px-6 py-10 space-y-10">
 
+        <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-xl shadow-indigo-100">
+          <div className="flex items-center justify-between gap-5">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">New practice space</div>
+              <h2 className="mt-2 text-xl font-bold">Talk with AI</h2>
+              <p className="mt-1 max-w-md text-sm leading-relaxed text-slate-300">
+                Start a new voice conversation and practice the words you have saved.
+              </p>
+            </div>
+            <button
+              onClick={() => router.push('/talk')}
+              className="shrink-0 rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 transition-all hover:-translate-y-0.5 hover:bg-cyan-300"
+            >
+              Start talking →
+            </button>
+          </div>
+        </section>
+
         {/* Stats section */}
         {stats && stats.scenariosCompleted > 0 && (
           <section>
