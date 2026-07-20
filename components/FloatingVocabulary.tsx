@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useCallback, useEffect, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
@@ -8,6 +8,11 @@ interface PersonalTerm {
   id: string
   term: string
   is_learned: boolean
+  spanish_meaning: string | null
+}
+
+interface TranslationResponse {
+  translations?: Array<{ term: string; meaning: string }>
 }
 
 export const PERSONAL_VOCABULARY_EVENT = 'personal-vocabulary-changed'
@@ -20,6 +25,7 @@ export default function FloatingVocabulary() {
   const [term, setTerm] = useState('')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const translationsInProgressRef = useRef(new Set<string>())
 
   const loadVocabulary = useCallback(async () => {
     const { data: { user: authUser } } = await supabase.auth.getUser()
@@ -41,12 +47,50 @@ export default function FloatingVocabulary() {
 
     const { data } = await supabase
       .from('personal_vocabulary')
-      .select('id, term, is_learned')
+      .select('id, term, is_learned, spanish_meaning')
       .eq('user_id', profile.id)
       .eq('is_learned', false)
       .order('created_at', { ascending: false })
 
-    setTerms(data ?? [])
+    const vocabulary = data ?? []
+    setTerms(vocabulary)
+
+    const missingMeanings = vocabulary
+      .filter(item => !item.spanish_meaning && !translationsInProgressRef.current.has(item.id))
+      .slice(0, 10)
+
+    if (missingMeanings.length > 0) {
+      missingMeanings.forEach(item => translationsInProgressRef.current.add(item.id))
+      void (async () => {
+        try {
+          const response = await fetch('/api/vocabulary/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ terms: missingMeanings.map(item => item.term) }),
+          })
+          const result = await response.json() as TranslationResponse
+          if (!response.ok || !result.translations) return
+
+          const meanings = new Map(result.translations.map(item => [item.term.toLocaleLowerCase(), item.meaning]))
+          await Promise.all(missingMeanings.map(item => {
+            const spanishMeaning = meanings.get(item.term.toLocaleLowerCase())
+            if (!spanishMeaning) return Promise.resolve()
+            return supabase
+              .from('personal_vocabulary')
+              .update({ spanish_meaning: spanishMeaning })
+              .eq('id', item.id)
+          }))
+
+          setTerms(current => current.map(item => ({
+            ...item,
+            spanish_meaning: meanings.get(item.term.toLocaleLowerCase()) ?? item.spanish_meaning,
+          })))
+          window.dispatchEvent(new Event(PERSONAL_VOCABULARY_EVENT))
+        } finally {
+          missingMeanings.forEach(item => translationsInProgressRef.current.delete(item.id))
+        }
+      })()
+    }
   }, [])
 
   useEffect(() => {
@@ -171,7 +215,12 @@ export default function FloatingVocabulary() {
               <div className="space-y-2">
                 {terms.map(item => (
                   <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-3 py-2.5">
-                    <span className="min-w-0 break-words text-sm font-medium text-gray-700">{item.term}</span>
+                    <span className="min-w-0 break-words">
+                      <span className="block text-sm font-medium text-gray-700">{item.term}</span>
+                      <span className="mt-0.5 block text-xs text-indigo-500">
+                        {item.spanish_meaning || 'Traduciendo…'}
+                      </span>
+                    </span>
                     <button
                       type="button"
                       onClick={() => markAsLearned(item.id)}

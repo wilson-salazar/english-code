@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 interface PersonalTerm {
   id: string
   term: string
+  spanish_meaning: string | null
 }
 
 interface ConversationMessage {
@@ -149,7 +150,7 @@ export default function TalkWithAiPage() {
   const loadActiveTerms = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from('personal_vocabulary')
-      .select('id, term')
+      .select('id, term, spanish_meaning')
       .eq('user_id', userId)
       .eq('is_learned', false)
       .order('created_at')
@@ -280,6 +281,15 @@ export default function TalkWithAiPage() {
       audioRef.current?.pause()
     }
   }, [loadActiveTerms, router, startConversation])
+
+  useEffect(() => {
+    if (!profileId) return
+    const refreshTerms = () => {
+      void loadActiveTerms(profileId).then(setTerms)
+    }
+    window.addEventListener(PERSONAL_VOCABULARY_EVENT, refreshTerms)
+    return () => window.removeEventListener(PERSONAL_VOCABULARY_EVENT, refreshTerms)
+  }, [loadActiveTerms, profileId])
 
   useEffect(() => {
     if (!feedback) return
@@ -554,9 +564,15 @@ export default function TalkWithAiPage() {
                   key={item.id}
                   onClick={() => markTermLearned(item)}
                   title="Mark as learned"
-                  className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-xs font-medium text-amber-100 transition-colors hover:border-green-300/30 hover:bg-green-300/10 hover:text-green-200"
+                  className="rounded-xl border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-left transition-colors hover:border-green-300/30 hover:bg-green-300/10"
                 >
-                  {item.term} · Learned ✓
+                  <span className="block text-sm font-semibold text-amber-100">{item.term}</span>
+                  <span className="mt-0.5 block text-xs text-indigo-200">
+                    {item.spanish_meaning || 'Traduciendo…'}
+                  </span>
+                  <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-green-300/80">
+                    Mark learned ✓
+                  </span>
                 </button>
               ))}
             </div>
