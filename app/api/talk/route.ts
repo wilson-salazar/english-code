@@ -7,7 +7,7 @@ interface ChatMessage {
 }
 
 interface TalkRequest {
-  action: 'start' | 'respond'
+  action: 'start' | 'respond' | 'feedback'
   vocabulary?: string[]
   previousTopics?: string[]
   history?: ChatMessage[]
@@ -19,6 +19,12 @@ interface TalkResult {
   topic_category?: string
   message: string
   words_used?: string[]
+  feedback?: {
+    summary: string
+    strengths: string[]
+    improvements: string[]
+    next_step: string
+  }
 }
 
 function parseModelJson(text: string): TalkResult {
@@ -27,6 +33,15 @@ function parseModelJson(text: string): TalkResult {
   const parsed = JSON.parse(match[0]) as TalkResult
   if (!parsed.message?.trim()) throw new Error('The AI response did not contain a message.')
   return parsed
+}
+
+function hasValidFeedback(result: TalkResult) {
+  return Boolean(
+    result.feedback?.summary?.trim()
+    && result.feedback?.strengths?.length
+    && result.feedback?.improvements?.length
+    && result.feedback?.next_step?.trim()
+  )
 }
 
 export async function POST(request: NextRequest) {
@@ -104,18 +119,71 @@ Choose a clearly different subject. Return exactly this JSON shape:
         return NextResponse.json({ error: 'A user message is required.' }, { status: 400 })
       }
 
+      let lastError: unknown
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const message = await anthropic.messages.create({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 500,
+            temperature: attempt === 0 ? 0.9 : 0.5,
+            system: `${system}
+Continue the existing topic. Respond to what the learner actually said before adding a new fact or angle. Encourage communication rather than correcting every mistake.
+Your final sentence must be a direct question that invites the learner to answer.
+Return exactly: {"message":"your next turn","words_used":["saved terms actually used"]}`,
+            messages: history,
+          })
+
+          const text = message.content[0]?.type === 'text' ? message.content[0].text : ''
+          return NextResponse.json(parseModelJson(text))
+        } catch (error) {
+          lastError = error
+        }
+      }
+      throw lastError
+    }
+
+    if (body.action === 'feedback') {
+      const history = (body.history ?? [])
+        .filter(item => (item.role === 'assistant' || item.role === 'user') && item.content?.trim())
+        .slice(-20)
+        .map(item => ({ role: item.role, content: item.content.slice(0, 5000) }))
+
+      const userTurns = history.filter(item => item.role === 'user')
+      if (userTurns.length === 0) {
+        return NextResponse.json({ error: 'At least one user response is required for feedback.' }, { status: 400 })
+      }
+
       const message = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 500,
-        temperature: 0.9,
-        system: `${system}
-Continue the existing topic. Respond to what the learner actually said before adding a new fact or angle. Encourage communication rather than correcting every mistake.
-Return exactly: {"message":"your next turn","words_used":["saved terms actually used"]}`,
-        messages: history,
+        max_tokens: 700,
+        temperature: 0.4,
+        system: `You are a supportive English coach inside English Code.
+The learner's approximate CEFR level is ${level}.
+Review only the learner's messages in the supplied conversation. Give concise, specific feedback in English that is understandable at their level.
+Mention two things they communicated well. Identify up to two useful improvements in grammar, vocabulary, clarity, or natural phrasing. When possible, quote only a short phrase from the learner and provide a better version. Never invent an error that is not present.
+Return only valid JSON. Do not wrap it in markdown.`,
+        messages: [{
+          role: 'user',
+          content: `Evaluate this conversation:
+${history.map(item => `${item.role.toUpperCase()}: ${item.content}`).join('\n')}
+
+Return exactly this JSON shape:
+{
+  "message": "a short encouraging closing sentence",
+  "feedback": {
+    "summary": "one-sentence overall assessment",
+    "strengths": ["specific strength one", "specific strength two"],
+    "improvements": ["specific improvement one", "specific improvement two"],
+    "next_step": "one practical suggestion for the learner's next conversation"
+  }
+}`,
+        }],
       })
 
       const text = message.content[0]?.type === 'text' ? message.content[0].text : ''
-      return NextResponse.json(parseModelJson(text))
+      const result = parseModelJson(text)
+      if (!hasValidFeedback(result)) throw new Error('The AI response did not contain valid feedback.')
+      return NextResponse.json(result)
     }
 
     return NextResponse.json({ error: 'Unsupported action.' }, { status: 400 })

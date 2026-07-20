@@ -107,7 +107,7 @@ export default function FloatingVocabulary() {
   }
 
   return (
-    <div className={`fixed right-4 z-50 sm:right-5 ${pathname === '/talk' ? 'bottom-36 sm:bottom-32' : 'bottom-4 sm:bottom-5'}`}>
+    <div className={`fixed right-4 z-50 sm:right-5 ${pathname === '/talk' ? 'bottom-52 sm:bottom-48' : 'bottom-4 sm:bottom-5'}`}>
       {isOpen ? (
         <section
           aria-label="Personal vocabulary"

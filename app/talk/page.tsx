@@ -21,12 +21,21 @@ interface TalkApiResponse {
   topic_category?: string
   message?: string
   words_used?: string[]
+  feedback?: ConversationFeedback
   error?: string
+}
+
+interface ConversationFeedback {
+  summary: string
+  strengths: string[]
+  improvements: string[]
+  next_step: string
 }
 
 type RecordingState = 'idle' | 'recording' | 'review'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SpeechRecognitionType = any
+const MAX_USER_TURNS = 5
 
 function highlightedText(text: string, terms: string[]) {
   if (terms.length === 0) return text
@@ -74,8 +83,11 @@ export default function TalkWithAiPage() {
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null)
   const [visibleAssistantText, setVisibleAssistantText] = useState('')
   const [speakingFullText, setSpeakingFullText] = useState('')
+  const [feedback, setFeedback] = useState<ConversationFeedback | null>(null)
+  const [conversationFinished, setConversationFinished] = useState(false)
   const recognitionRef = useRef<SpeechRecognitionType>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const feedbackRef = useRef<HTMLElement | null>(null)
   const initializedRef = useRef(false)
 
   const speakAssistant = useCallback(async (messageId: string, text: string) => {
@@ -149,6 +161,8 @@ export default function TalkWithAiPage() {
     setMessages([])
     setConversationId(null)
     setTopicTitle('')
+    setFeedback(null)
+    setConversationFinished(false)
 
     const { data: previous } = await supabase
       .from('ai_conversations')
@@ -264,6 +278,12 @@ export default function TalkWithAiPage() {
     }
   }, [loadActiveTerms, router, startConversation])
 
+  useEffect(() => {
+    if (!feedback) return
+    const timer = window.setTimeout(() => feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150)
+    return () => window.clearTimeout(timer)
+  }, [feedback])
+
   async function handleNewTopic() {
     if (!profileId || loadingTopic || sending) return
     audioRef.current?.pause()
@@ -339,6 +359,11 @@ export default function TalkWithAiPage() {
     setTranscript('')
     setRecordingState('idle')
 
+    if (nextHistory.filter(item => item.role === 'user').length >= MAX_USER_TURNS) {
+      await requestFeedback(nextHistory)
+      return
+    }
+
     const response = await fetch('/api/talk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -375,6 +400,57 @@ export default function TalkWithAiPage() {
     await speakAssistant(assistantMessage.id, assistantMessage.content)
   }
 
+  async function requestFeedback(history: ConversationMessage[]) {
+    if (!conversationId) return
+
+    const response = await fetch('/api/talk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'feedback',
+        history: history.map(item => ({ role: item.role, content: item.content })),
+        level,
+      }),
+    })
+    const generated = await response.json() as TalkApiResponse
+
+    if (!response.ok || !generated.message || !generated.feedback) {
+      setError(generated.error ?? 'Your feedback could not be generated. Please try again.')
+      setSending(false)
+      return
+    }
+
+    const { data: savedClosing, error: closingError } = await supabase
+      .from('ai_conversation_messages')
+      .insert({ conversation_id: conversationId, role: 'assistant', content: generated.message })
+      .select('id, role, content')
+      .single()
+
+    if (closingError || !savedClosing) {
+      setError('Your feedback could not be saved.')
+      setSending(false)
+      return
+    }
+
+    const closingMessage = savedClosing as ConversationMessage
+    setMessages(current => [...current, closingMessage])
+    setFeedback(generated.feedback)
+    setConversationFinished(true)
+    setTranscript('')
+    setRecordingState('idle')
+    setSending(false)
+    await speakAssistant(closingMessage.id, closingMessage.content)
+  }
+
+  async function finishConversation() {
+    if (sending || conversationFinished || messages.every(item => item.role !== 'user')) return
+    recognitionRef.current?.stop()
+    skipAssistantAudio()
+    setSending(true)
+    setError('')
+    await requestFeedback(messages)
+  }
+
   async function markTermLearned(term: PersonalTerm) {
     const { error: updateError } = await supabase
       .from('personal_vocabulary')
@@ -386,6 +462,8 @@ export default function TalkWithAiPage() {
       window.dispatchEvent(new Event(PERSONAL_VOCABULARY_EVENT))
     }
   }
+
+  const userTurnCount = messages.filter(message => message.role === 'user').length
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -411,7 +489,7 @@ export default function TalkWithAiPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl space-y-5 px-5 py-6 pb-40">
+      <main className="mx-auto max-w-3xl space-y-5 px-5 py-6 pb-56">
         <section className="overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-indigo-600/30 via-violet-600/15 to-cyan-500/10 p-6">
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
             {topicCategory || 'Preparing a random topic'}
@@ -464,9 +542,20 @@ export default function TalkWithAiPage() {
             return (
               <article key={message.id} className={`flex gap-3 ${isAssistant ? '' : 'justify-end'}`}>
                 {isAssistant && (
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 text-sm font-bold">
+                  <button
+                    type="button"
+                    onClick={() => speakingMessageId === message.id
+                      ? skipAssistantAudio()
+                      : void speakAssistant(message.id, message.content)}
+                    aria-label={speakingMessageId === message.id ? 'Stop AI audio' : 'Replay AI message'}
+                    title={speakingMessageId === message.id ? 'Stop audio' : 'Listen again'}
+                    className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 text-sm font-bold transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                  >
                     AI
-                  </div>
+                    <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-800 text-[9px] shadow" aria-hidden="true">
+                      {speakingMessageId === message.id ? '■' : '🔊'}
+                    </span>
+                  </button>
                 )}
                 <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                   isAssistant
@@ -503,58 +592,122 @@ export default function TalkWithAiPage() {
               {error}
             </div>
           )}
+
+          {feedback && (
+            <section ref={feedbackRef} className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-5" aria-labelledby="conversation-feedback-title">
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Conversation complete</div>
+                  <h2 id="conversation-feedback-title" className="mt-1 text-xl font-bold text-white">Your feedback</h2>
+                </div>
+                <span className="rounded-full bg-emerald-300/15 px-3 py-1 text-xs text-emerald-200">{userTurnCount} responses</span>
+              </div>
+              <p className="rounded-xl bg-black/15 px-4 py-3 text-sm leading-relaxed text-slate-200">{feedback.summary}</p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-emerald-300">What you did well</h3>
+                  <ul className="space-y-2 text-sm text-slate-200">
+                    {feedback.strengths.map((item, index) => <li key={index}>✓ {item}</li>)}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-amber-300">What to improve</h3>
+                  <ul className="space-y-2 text-sm text-slate-200">
+                    {feedback.improvements.map((item, index) => <li key={index}>→ {item}</li>)}
+                  </ul>
+                </div>
+              </div>
+              <div className="mt-4 rounded-xl border border-white/10 px-4 py-3 text-sm text-slate-200">
+                <span className="font-semibold text-cyan-300">Next step: </span>{feedback.next_step}
+              </div>
+            </section>
+          )}
         </section>
       </main>
 
-      <section className="fixed inset-x-0 bottom-0 border-t border-white/10 bg-slate-950/95 px-5 py-4 backdrop-blur">
+      <section className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-slate-950/95 px-5 py-4 shadow-2xl shadow-black backdrop-blur">
         <div className="mx-auto max-w-3xl">
-          <textarea
-            value={transcript}
-            onChange={event => { setTranscript(event.target.value); setRecordingState('review') }}
-            rows={2}
-            placeholder={recordingState === 'recording' ? 'Your words will appear here as you speak...' : 'Speak or type your answer in English...'}
-            className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-indigo-400"
-          />
-
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              {recordingState !== 'recording' ? (
-                <button
-                  onClick={startRecording}
-                  disabled={loadingTopic || sending || speakingMessageId !== null}
-                  className="inline-flex items-center gap-2 rounded-full bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400 disabled:opacity-40"
-                >
-                  <span aria-hidden="true">🎙</span>
-                  {recordingState === 'review' ? 'Record again' : 'Start talking'}
-                </button>
-              ) : (
-                <button
-                  onClick={stopRecording}
-                  className="inline-flex items-center gap-2 rounded-full bg-red-500 px-4 py-2.5 text-sm font-semibold text-white"
-                >
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
-                  Stop
-                </button>
-              )}
-
-              {transcript && recordingState !== 'recording' && (
-                <button onClick={retryRecording} className="px-2 py-2 text-xs font-semibold text-slate-400 hover:text-white">
-                  Clear
-                </button>
-              )}
+          {conversationFinished ? (
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="text-sm font-semibold text-emerald-300">Practice complete</div>
+                <p className="text-xs text-slate-400">Review your feedback above or continue with a different subject.</p>
+              </div>
+              <button
+                onClick={handleNewTopic}
+                className="shrink-0 rounded-full bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-400"
+              >
+                New topic →
+              </button>
             </div>
+          ) : (
+            <>
+              <div className="mb-2 flex items-center justify-between gap-3 text-xs">
+                <span className="font-semibold text-cyan-300">
+                  {loadingTopic ? 'Preparing the conversation…' : speakingMessageId ? 'Listen to the AI, then answer' : 'Your turn — answer the AI question'}
+                </span>
+                <span className="text-slate-400">Response {Math.min(userTurnCount + 1, MAX_USER_TURNS)} of {MAX_USER_TURNS}</span>
+              </div>
+              <textarea
+                value={transcript}
+                onChange={event => { setTranscript(event.target.value); setRecordingState('review') }}
+                disabled={loadingTopic || sending}
+                rows={2}
+                placeholder={recordingState === 'recording' ? 'Your words will appear here as you speak...' : 'Speak or type your answer in English...'}
+                className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-indigo-400 disabled:opacity-50"
+              />
 
-            <button
-              onClick={sendMessage}
-              disabled={!transcript.trim() || !conversationId || sending || recordingState === 'recording'}
-              className="rounded-full bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-30"
-            >
-              Send →
-            </button>
-          </div>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  {recordingState !== 'recording' ? (
+                    <button
+                      onClick={startRecording}
+                      disabled={loadingTopic || sending || speakingMessageId !== null}
+                      className="inline-flex items-center gap-2 rounded-full bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400 disabled:opacity-40"
+                    >
+                      <span aria-hidden="true">🎙</span>
+                      {recordingState === 'review' ? 'Record again' : 'Start talking'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={stopRecording}
+                      className="inline-flex items-center gap-2 rounded-full bg-red-500 px-4 py-2.5 text-sm font-semibold text-white"
+                    >
+                      <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
+                      Stop
+                    </button>
+                  )}
 
-          {speechUnsupported && (
-            <p className="mt-2 text-xs text-amber-300">Voice recognition is unavailable in this browser. You can still type your answer.</p>
+                  {transcript && recordingState !== 'recording' && (
+                    <button onClick={retryRecording} className="px-2 py-2 text-xs font-semibold text-slate-400 hover:text-white">
+                      Clear
+                    </button>
+                  )}
+
+                  {userTurnCount >= 2 && (
+                    <button
+                      onClick={finishConversation}
+                      disabled={sending || recordingState === 'recording'}
+                      className="px-2 py-2 text-xs font-semibold text-emerald-300 hover:text-emerald-200 disabled:opacity-40"
+                    >
+                      Finish & feedback
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  onClick={sendMessage}
+                  disabled={!transcript.trim() || !conversationId || sending || recordingState === 'recording'}
+                  className="rounded-full bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  {userTurnCount + 1 >= MAX_USER_TURNS ? 'Send & get feedback →' : 'Send →'}
+                </button>
+              </div>
+
+              {speechUnsupported && (
+                <p className="mt-2 text-xs text-amber-300">Voice recognition is unavailable in this browser. You can still type your answer.</p>
+              )}
+            </>
           )}
         </div>
       </section>
