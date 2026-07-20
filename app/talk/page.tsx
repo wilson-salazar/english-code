@@ -592,22 +592,42 @@ export default function TalkWithAiPage() {
             </p>
           ) : (
             <div className="flex flex-wrap gap-2">
-              {terms.map(item => (
-                <button
+              {terms.map(item => {
+                const pronunciationId = `term-${item.id}`
+                const isPronouncing = speakingMessageId === pronunciationId
+                return (
+                <div
                   key={item.id}
-                  onClick={() => markTermLearned(item)}
-                  title="Mark as learned"
-                  className="rounded-xl border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-left transition-colors hover:border-green-300/30 hover:bg-green-300/10"
+                  className="rounded-xl border border-amber-300/20 bg-amber-300/10 px-3 py-2 transition-colors hover:border-green-300/30 hover:bg-green-300/10"
                 >
-                  <span className="block text-sm font-semibold text-amber-100">{item.term}</span>
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-sm font-semibold text-amber-100">{item.term}</span>
+                    <button
+                      type="button"
+                      onClick={() => isPronouncing
+                        ? skipAssistantAudio()
+                        : void speakAssistant(pronunciationId, item.term, false)}
+                      aria-label={isPronouncing ? `Stop pronunciation of ${item.term}` : `Listen to pronunciation of ${item.term}`}
+                      title={isPronouncing ? 'Stop pronunciation' : 'Listen to pronunciation'}
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-cyan-300/10 text-xs transition-all hover:scale-105 hover:bg-cyan-300/20 focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                    >
+                      <span aria-hidden="true">{isPronouncing ? '■' : '🔊'}</span>
+                    </button>
+                  </div>
                   <span className="mt-0.5 block text-xs text-indigo-200">
                     {item.spanish_meaning || 'Traduciendo…'}
                   </span>
-                  <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-green-300/80">
+                  <button
+                    type="button"
+                    onClick={() => markTermLearned(item)}
+                    title="Mark as learned"
+                    className="mt-1 block text-left text-[10px] font-semibold uppercase tracking-wide text-green-300/80 hover:text-green-200"
+                  >
                     Mark learned ✓
-                  </span>
-                </button>
-              ))}
+                  </button>
+                </div>
+                )
+              })}
             </div>
           )}
         </section>
