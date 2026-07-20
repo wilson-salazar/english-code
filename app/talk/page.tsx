@@ -93,10 +93,10 @@ export default function TalkWithAiPage() {
   const initializedRef = useRef(false)
   const sendingRef = useRef(false)
 
-  const speakAssistant = useCallback(async (messageId: string, text: string) => {
+  const speakAssistant = useCallback(async (messageId: string, text: string, animateText = true) => {
     audioRef.current?.pause()
     setSpeakingMessageId(messageId)
-    setVisibleAssistantText('')
+    setVisibleAssistantText(animateText ? '' : text)
     setSpeakingFullText(text)
 
     try {
@@ -115,7 +115,7 @@ export default function TalkWithAiPage() {
       await Promise.race([
         new Promise<void>((resolve, reject) => {
         audio.ontimeupdate = () => {
-          if (!audio.duration) return
+          if (!animateText || !audio.duration) return
           const visibleCharacters = Math.ceil(text.length * (audio.currentTime / audio.duration))
           setVisibleAssistantText(text.slice(0, visibleCharacters))
         }
@@ -135,7 +135,11 @@ export default function TalkWithAiPage() {
       URL.revokeObjectURL(url)
       setVisibleAssistantText(text)
     } catch {
-      await typeText(text, setVisibleAssistantText)
+      if (animateText) {
+        await typeText(text, setVisibleAssistantText)
+      } else {
+        setVisibleAssistantText(text)
+      }
     } finally {
       setSpeakingMessageId(null)
     }
@@ -562,7 +566,7 @@ export default function TalkWithAiPage() {
               type="button"
               onClick={() => speakingMessageId === 'topic-title'
                 ? skipAssistantAudio()
-                : void speakAssistant('topic-title', topicTitle)}
+                : void speakAssistant('topic-title', topicTitle, false)}
               disabled={!topicTitle}
               aria-label={speakingMessageId === 'topic-title' ? 'Stop topic title audio' : 'Listen to topic title'}
               title={speakingMessageId === 'topic-title' ? 'Stop title audio' : 'Listen to title'}
@@ -626,7 +630,7 @@ export default function TalkWithAiPage() {
                     type="button"
                     onClick={() => speakingMessageId === message.id
                       ? skipAssistantAudio()
-                      : void speakAssistant(message.id, message.content)}
+                      : void speakAssistant(message.id, message.content, false)}
                     aria-label={speakingMessageId === message.id ? 'Stop AI audio' : 'Replay AI message'}
                     title={speakingMessageId === message.id ? 'Stop audio' : 'Listen again'}
                     className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 text-sm font-bold transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-300"
