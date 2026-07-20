@@ -35,6 +35,20 @@ function parseModelJson(text: string): TalkResult {
   return parsed
 }
 
+function parseConversationTurn(text: string): TalkResult {
+  try {
+    return parseModelJson(text)
+  } catch {
+    const message = text
+      .trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '')
+      .trim()
+    if (!message) throw new Error('The AI response was empty.')
+    return { message, words_used: [] }
+  }
+}
+
 function hasValidFeedback(result: TalkResult) {
   return Boolean(
     result.feedback?.summary?.trim()
@@ -114,6 +128,10 @@ Choose a clearly different subject. Return exactly this JSON shape:
         .filter(item => (item.role === 'assistant' || item.role === 'user') && item.content?.trim())
         .slice(-20)
         .map(item => ({ role: item.role, content: item.content.slice(0, 5000) }))
+        .filter((item, index, items) => {
+          const previous = items[index - 1]
+          return !previous || previous.role !== item.role || previous.content !== item.content
+        })
 
       if (history.length === 0 || history.at(-1)?.role !== 'user') {
         return NextResponse.json({ error: 'A user message is required.' }, { status: 400 })
@@ -134,7 +152,7 @@ Return exactly: {"message":"your next turn","words_used":["saved terms actually 
           })
 
           const text = message.content[0]?.type === 'text' ? message.content[0].text : ''
-          return NextResponse.json(parseModelJson(text))
+          return NextResponse.json(parseConversationTurn(text))
         } catch (error) {
           lastError = error
         }

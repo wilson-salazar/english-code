@@ -85,10 +85,12 @@ export default function TalkWithAiPage() {
   const [speakingFullText, setSpeakingFullText] = useState('')
   const [feedback, setFeedback] = useState<ConversationFeedback | null>(null)
   const [conversationFinished, setConversationFinished] = useState(false)
+  const [pendingHistory, setPendingHistory] = useState<ConversationMessage[] | null>(null)
   const recognitionRef = useRef<SpeechRecognitionType>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const feedbackRef = useRef<HTMLElement | null>(null)
   const initializedRef = useRef(false)
+  const sendingRef = useRef(false)
 
   const speakAssistant = useCallback(async (messageId: string, text: string) => {
     audioRef.current?.pause()
@@ -163,6 +165,7 @@ export default function TalkWithAiPage() {
     setTopicTitle('')
     setFeedback(null)
     setConversationFinished(false)
+    setPendingHistory(null)
 
     const { data: previous } = await supabase
       .from('ai_conversations')
@@ -333,10 +336,16 @@ export default function TalkWithAiPage() {
     setRecordingState('idle')
   }
 
+  function releaseSending() {
+    sendingRef.current = false
+    setSending(false)
+  }
+
   async function sendMessage() {
     const cleanTranscript = transcript.trim()
-    if (!conversationId || !cleanTranscript || sending) return
+    if (!conversationId || !cleanTranscript || sendingRef.current || pendingHistory) return
 
+    sendingRef.current = true
     setSending(true)
     setError('')
     recognitionRef.current?.stop()
@@ -349,7 +358,7 @@ export default function TalkWithAiPage() {
 
     if (userMessageError || !savedUserMessage) {
       setError('Your message could not be saved.')
-      setSending(false)
+      releaseSending()
       return
     }
 
@@ -364,44 +373,68 @@ export default function TalkWithAiPage() {
       return
     }
 
-    const response = await fetch('/api/talk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'respond',
-        vocabulary: terms.map(item => item.term),
-        history: nextHistory.map(item => ({ role: item.role, content: item.content })),
-        level,
-      }),
-    })
-    const generated = await response.json() as TalkApiResponse
+    await requestAssistantResponse(nextHistory)
+  }
 
-    if (!response.ok || !generated.message) {
-      setError(generated.error ?? 'The AI could not answer. Please try again.')
-      setSending(false)
-      return
+  async function requestAssistantResponse(history: ConversationMessage[]) {
+    try {
+      const response = await fetch('/api/talk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'respond',
+          vocabulary: terms.map(item => item.term),
+          history: history.map(item => ({ role: item.role, content: item.content })),
+          level,
+        }),
+      })
+      const generated = await response.json() as TalkApiResponse
+
+      if (!response.ok || !generated.message) {
+        setError(generated.error ?? 'The AI could not answer. Retry without recording your answer again.')
+        setPendingHistory(history)
+        releaseSending()
+        return
+      }
+
+      const { data: savedAssistantMessage, error: assistantMessageError } = await supabase
+        .from('ai_conversation_messages')
+        .insert({ conversation_id: conversationId, role: 'assistant', content: generated.message })
+        .select('id, role, content')
+        .single()
+
+      if (assistantMessageError || !savedAssistantMessage) {
+        setError('The AI answer could not be saved.')
+        setPendingHistory(history)
+        releaseSending()
+        return
+      }
+
+      const assistantMessage = savedAssistantMessage as ConversationMessage
+      setMessages(current => [...current, assistantMessage])
+      setPendingHistory(null)
+      releaseSending()
+      await speakAssistant(assistantMessage.id, assistantMessage.content)
+    } catch {
+      setError('The AI connection was interrupted. Your answer is safe; please retry.')
+      setPendingHistory(history)
+      releaseSending()
     }
+  }
 
-    const { data: savedAssistantMessage, error: assistantMessageError } = await supabase
-      .from('ai_conversation_messages')
-      .insert({ conversation_id: conversationId, role: 'assistant', content: generated.message })
-      .select('id, role, content')
-      .single()
-
-    if (assistantMessageError || !savedAssistantMessage) {
-      setError('The AI answer could not be saved.')
-      setSending(false)
-      return
-    }
-
-    const assistantMessage = savedAssistantMessage as ConversationMessage
-    setMessages(current => [...current, assistantMessage])
-    setSending(false)
-    await speakAssistant(assistantMessage.id, assistantMessage.content)
+  async function retryAssistantResponse() {
+    if (!pendingHistory || sendingRef.current) return
+    sendingRef.current = true
+    setSending(true)
+    setError('')
+    await requestAssistantResponse(pendingHistory)
   }
 
   async function requestFeedback(history: ConversationMessage[]) {
-    if (!conversationId) return
+    if (!conversationId) {
+      releaseSending()
+      return
+    }
 
     const response = await fetch('/api/talk', {
       method: 'POST',
@@ -416,7 +449,7 @@ export default function TalkWithAiPage() {
 
     if (!response.ok || !generated.message || !generated.feedback) {
       setError(generated.error ?? 'Your feedback could not be generated. Please try again.')
-      setSending(false)
+      releaseSending()
       return
     }
 
@@ -428,7 +461,7 @@ export default function TalkWithAiPage() {
 
     if (closingError || !savedClosing) {
       setError('Your feedback could not be saved.')
-      setSending(false)
+      releaseSending()
       return
     }
 
@@ -438,14 +471,16 @@ export default function TalkWithAiPage() {
     setConversationFinished(true)
     setTranscript('')
     setRecordingState('idle')
-    setSending(false)
+    setPendingHistory(null)
+    releaseSending()
     await speakAssistant(closingMessage.id, closingMessage.content)
   }
 
   async function finishConversation() {
-    if (sending || conversationFinished || messages.every(item => item.role !== 'user')) return
+    if (sendingRef.current || conversationFinished || messages.every(item => item.role !== 'user')) return
     recognitionRef.current?.stop()
     skipAssistantAudio()
+    sendingRef.current = true
     setSending(true)
     setError('')
     await requestFeedback(messages)
@@ -588,8 +623,18 @@ export default function TalkWithAiPage() {
           )}
 
           {error && (
-            <div className="rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-200" role="alert">
-              {error}
+            <div className="flex items-center justify-between gap-4 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-200" role="alert">
+              <span>{error}</span>
+              {pendingHistory && (
+                <button
+                  type="button"
+                  onClick={retryAssistantResponse}
+                  disabled={sending}
+                  className="shrink-0 rounded-lg bg-red-300/15 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-300/25 disabled:opacity-40"
+                >
+                  Retry AI response
+                </button>
+              )}
             </div>
           )}
 
@@ -644,14 +689,20 @@ export default function TalkWithAiPage() {
             <>
               <div className="mb-2 flex items-center justify-between gap-3 text-xs">
                 <span className="font-semibold text-cyan-300">
-                  {loadingTopic ? 'Preparing the conversation…' : speakingMessageId ? 'Listen to the AI, then answer' : 'Your turn — answer the AI question'}
+                  {loadingTopic
+                    ? 'Preparing the conversation…'
+                    : pendingHistory
+                      ? 'Your answer is saved — retry the AI response'
+                      : speakingMessageId
+                        ? 'Listen to the AI, then answer'
+                        : 'Your turn — answer the AI question'}
                 </span>
                 <span className="text-slate-400">Response {Math.min(userTurnCount + 1, MAX_USER_TURNS)} of {MAX_USER_TURNS}</span>
               </div>
               <textarea
                 value={transcript}
                 onChange={event => { setTranscript(event.target.value); setRecordingState('review') }}
-                disabled={loadingTopic || sending}
+                disabled={loadingTopic || sending || pendingHistory !== null}
                 rows={2}
                 placeholder={recordingState === 'recording' ? 'Your words will appear here as you speak...' : 'Speak or type your answer in English...'}
                 className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-indigo-400 disabled:opacity-50"
@@ -662,7 +713,7 @@ export default function TalkWithAiPage() {
                   {recordingState !== 'recording' ? (
                     <button
                       onClick={startRecording}
-                      disabled={loadingTopic || sending || speakingMessageId !== null}
+                      disabled={loadingTopic || sending || pendingHistory !== null || speakingMessageId !== null}
                       className="inline-flex items-center gap-2 rounded-full bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400 disabled:opacity-40"
                     >
                       <span aria-hidden="true">🎙</span>
@@ -697,7 +748,7 @@ export default function TalkWithAiPage() {
 
                 <button
                   onClick={sendMessage}
-                  disabled={!transcript.trim() || !conversationId || sending || recordingState === 'recording'}
+                  disabled={!transcript.trim() || !conversationId || sending || pendingHistory !== null || recordingState === 'recording'}
                   className="rounded-full bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   {userTurnCount + 1 >= MAX_USER_TURNS ? 'Send & get feedback →' : 'Send →'}
