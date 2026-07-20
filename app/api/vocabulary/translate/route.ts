@@ -10,19 +10,19 @@ interface Translation {
   meaning: string
 }
 
-function parseTranslations(text: string, requestedTerms: string[]): Translation[] {
-  const match = text.match(/\[[\s\S]*\]/)
-  if (!match) throw new Error('The translation response did not contain JSON.')
+interface TranslationToolInput {
+  translations?: Array<{ index?: unknown; meaning?: unknown }>
+}
 
-  const parsed = JSON.parse(match[0]) as Array<{ term?: unknown; meaning?: unknown }>
-  const requested = new Map(requestedTerms.map(term => [term.toLocaleLowerCase(), term]))
-  const translations = parsed
-    .filter(item => typeof item.term === 'string' && typeof item.meaning === 'string')
+function parseTranslations(input: unknown, requestedTerms: string[]): Translation[] {
+  const parsed = input as TranslationToolInput
+  const translations = (parsed.translations ?? [])
+    .filter(item => Number.isInteger(item.index) && typeof item.meaning === 'string')
     .map(item => ({
-      term: requested.get((item.term as string).trim().toLocaleLowerCase()) ?? '',
+      term: requestedTerms[item.index as number] ?? '',
       meaning: (item.meaning as string).trim(),
     }))
-    .filter(item => item.term && item.meaning)
+    .filter((item, index, items) => item.term && item.meaning && items.findIndex(other => other.term === item.term) === index)
 
   if (translations.length !== requestedTerms.length) {
     throw new Error('The translation response was incomplete.')
@@ -58,19 +58,41 @@ export async function POST(request: NextRequest) {
         max_tokens: 600,
         temperature: 0,
         system: `Translate English vocabulary into concise, natural Spanish for a language learner.
-Preserve the input term exactly in the "term" field. Give only the most common meaning or a short Spanish equivalent; do not add examples or explanations.
-Return only a valid JSON array and no markdown.`,
+Give only the most common meaning or a short Spanish equivalent. Ignore accidental trailing punctuation. If a term contains an accidentally repeated word, translate its intended meaning once. Do not add examples or explanations.`,
         messages: [{
           role: 'user',
           content: `Translate every item in this list:
-${terms.map(term => `- ${term}`).join('\n')}
-
-Return exactly: [{"term":"original term","meaning":"Spanish meaning"}]`,
+${terms.map((term, index) => `${index}: ${term}`).join('\n')}`,
         }],
+        tools: [{
+          name: 'save_vocabulary_translations',
+          description: 'Save one concise Spanish meaning for every indexed vocabulary item.',
+          input_schema: {
+            type: 'object',
+            properties: {
+              translations: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    index: { type: 'integer', description: 'The original numeric index.' },
+                    meaning: { type: 'string', description: 'A concise Spanish meaning.' },
+                  },
+                  required: ['index', 'meaning'],
+                },
+              },
+            },
+            required: ['translations'],
+          },
+        }],
+        tool_choice: { type: 'tool', name: 'save_vocabulary_translations' },
       })
 
-      const text = response.content[0]?.type === 'text' ? response.content[0].text : ''
-      return NextResponse.json({ translations: parseTranslations(text, terms) })
+      const toolUse = response.content.find(
+        block => block.type === 'tool_use' && block.name === 'save_vocabulary_translations'
+      )
+      if (!toolUse || toolUse.type !== 'tool_use') throw new Error('The translation tool was not used.')
+      return NextResponse.json({ translations: parseTranslations(toolUse.input, terms) })
     } catch (error) {
       lastError = error
     }
