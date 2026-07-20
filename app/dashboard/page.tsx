@@ -38,6 +38,8 @@ interface Stats {
   bestSkill: string
 }
 
+type DashboardView = 'learning' | 'talk' | 'progress'
+
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
@@ -48,6 +50,7 @@ export default function DashboardPage() {
   const [showLevelPicker, setShowLevelPicker] = useState(false)
   const [updatingLevel, setUpdatingLevel] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
+  const [activeView, setActiveView] = useState<DashboardView>('learning')
 
   const loadData = useCallback(async () => {
     const { data: { user: authUser } } = await supabase.auth.getUser()
@@ -140,7 +143,9 @@ export default function DashboardPage() {
       : 0
 
     const skillMap = { Vocabulary: avgVocabulary, Clarity: avgClarity, Naturalness: avgNaturalness }
-    const bestSkill = Object.entries(skillMap).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—'
+    const bestSkill = avgScore > 0
+      ? Object.entries(skillMap).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—'
+      : '—'
 
     const uniqueDays = new Set(
       (responses ?? []).map(r => new Date(r.created_at).toDateString())
@@ -218,7 +223,7 @@ export default function DashboardPage() {
     <div className="learning-theme min-h-screen bg-yellow-50">
       {/* Top bar */}
       <header className="relative border-b border-white/10 bg-slate-950/90 px-6 py-4 backdrop-blur">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-indigo-600 font-mono text-base font-bold">{'</>'}</span>
             <span className="text-gray-400 font-mono text-sm">English Code</span>
@@ -250,7 +255,7 @@ export default function DashboardPage() {
 
       {showLevelPicker && (
         <div className="bg-indigo-50 border-b border-indigo-100 px-6 py-4">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between gap-4 mb-3">
               <div>
                 <div className="text-sm font-semibold text-indigo-950">Choose a learning program</div>
@@ -287,9 +292,41 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <main className="max-w-2xl mx-auto px-6 py-10 space-y-10">
+      <main className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-8 md:flex-row md:items-start">
+        <aside className="w-full shrink-0 md:sticky md:top-6 md:w-56">
+          <nav aria-label="Dashboard sections" className="flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-slate-900/80 p-2 shadow-xl shadow-black/10 md:flex-col">
+            {([
+              { id: 'learning', label: 'Learning path', description: 'Lessons and scenarios' },
+              { id: 'talk', label: 'Talk with AI', description: 'Voice conversation' },
+              { id: 'progress', label: 'Progress', description: 'KPIs and skills' },
+            ] as Array<{ id: DashboardView; label: string; description: string }>).map(item => {
+              const isActive = activeView === item.id
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveView(item.id)}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`min-w-max rounded-xl px-4 py-3 text-left transition-colors md:min-w-0 ${
+                    isActive
+                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-950/30'
+                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <span className="block text-sm font-semibold">{item.label}</span>
+                  <span className={`mt-0.5 hidden text-[11px] md:block ${isActive ? 'text-indigo-100' : 'text-slate-500'}`}>
+                    {item.description}
+                  </span>
+                </button>
+              )
+            })}
+          </nav>
+        </aside>
 
-        <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-xl shadow-indigo-100">
+        <div className="min-w-0 flex-1 space-y-8">
+
+        {activeView === 'talk' && (
+        <section className="overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-indigo-600/30 via-violet-600/15 to-cyan-500/10 p-8 text-white shadow-xl shadow-black/20">
           <div className="flex items-center justify-between gap-5">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">New practice space</div>
@@ -306,14 +343,21 @@ export default function DashboardPage() {
             </button>
           </div>
         </section>
+        )}
 
         {/* Stats section */}
-        {stats && stats.scenariosCompleted > 0 && (
+        {activeView === 'progress' && stats && (
           <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Your progress</h2>
+            <div className="mb-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Your activity</div>
+              <h1 className="mt-1 text-2xl font-bold text-slate-100">Progress and KPIs</h1>
+              <p className="mt-1 text-sm text-slate-400">
+                These indicators update as you complete lessons and submit responses.
+              </p>
+            </div>
 
             {/* KPI grid */}
-            <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {[
                 {
                   label: 'Scenarios done',
@@ -361,7 +405,7 @@ export default function DashboardPage() {
                   bg: 'bg-rose-50',
                 },
               ].map(({ label, value, icon, color, bg, stroke }) => (
-                <div key={label} className="bg-white rounded-2xl border border-gray-100 px-4 py-3 shadow-sm">
+                <div key={label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 shadow-sm">
                   <div className={`w-7 h-7 rounded-lg ${bg} flex items-center justify-center mb-2`}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                       fill={stroke ? 'none' : 'currentColor'}
@@ -371,15 +415,15 @@ export default function DashboardPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d={icon}/>
                     </svg>
                   </div>
-                  <div className="text-lg font-bold text-gray-900">{value}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">{label}</div>
+                  <div className="text-lg font-bold text-slate-100">{value}</div>
+                  <div className="mt-0.5 text-xs text-slate-400">{label}</div>
                 </div>
               ))}
             </div>
 
             {/* Skill breakdown */}
-            <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4 shadow-sm">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Skill breakdown</p>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-5 shadow-sm">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">Skill breakdown</p>
               <div className="space-y-2.5">
                 {[
                   { label: 'Vocabulary', value: stats.avgVocabulary, color: 'bg-indigo-500' },
@@ -400,6 +444,7 @@ export default function DashboardPage() {
         )}
 
         {/* Learning path */}
+        {activeView === 'learning' && (
         <section>
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Your learning path</h1>
@@ -507,6 +552,8 @@ export default function DashboardPage() {
             </div>
           )}
         </section>
+        )}
+        </div>
       </main>
     </div>
   )
