@@ -8,6 +8,7 @@ interface ChatMessage {
 
 interface TalkRequest {
   action: 'start' | 'respond' | 'feedback'
+  mode?: 'vocabulary' | 'open'
   vocabulary?: string[]
   previousTopics?: string[]
   history?: ChatMessage[]
@@ -72,9 +73,12 @@ export async function POST(request: NextRequest) {
     .filter(Boolean)
     .slice(0, 10)
   const level = (body.level ?? 'B1').slice(0, 10)
+  const isOpenMode = body.mode === 'open'
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-  const vocabularyInstruction = vocabulary.length > 0
+  const vocabularyInstruction = isOpenMode
+    ? `This is an open conversation started by the learner. Do not use, mention, or optimize for saved vocabulary. Follow the learner's chosen subject or question.`
+    : vocabulary.length > 0
     ? `Practice vocabulary: ${vocabulary.map(term => `"${term}"`).join(', ')}. Across the first four assistant turns, naturally use every term at least once. On each turn, use one to three terms when natural. Never present them as a forced list.`
     : 'There is no saved practice vocabulary yet. Keep the conversation useful and invite the learner to add words later.'
 
@@ -145,7 +149,10 @@ Choose a clearly different subject. Return exactly this JSON shape:
             max_tokens: 500,
             temperature: attempt === 0 ? 0.9 : 0.5,
             system: `${system}
-Continue the existing topic. Respond to what the learner actually said before adding a new fact or angle. Encourage communication rather than correcting every mistake.
+${isOpenMode
+  ? `The learner started this open conversation. Directly address their question or chosen subject, then continue naturally. Do not redirect to a random topic.`
+  : `Continue the existing topic. Respond to what the learner actually said before adding a new fact or angle.`}
+Encourage communication rather than correcting every mistake.
 Your final sentence must be a direct question that invites the learner to answer.
 Return exactly: {"message":"your next turn","words_used":["saved terms actually used"]}`,
             messages: history,

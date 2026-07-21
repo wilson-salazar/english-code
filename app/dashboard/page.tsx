@@ -326,21 +326,45 @@ export default function DashboardPage() {
         <div className="min-w-0 flex-1 space-y-8">
 
         {activeView === 'talk' && (
-        <section className="overflow-hidden rounded-3xl border border-indigo-400/25 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 text-white shadow-xl shadow-black/20">
-          <div className="flex items-center justify-between gap-5">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">New practice space</div>
-              <h2 className="mt-2 text-xl font-bold">Talk with AI</h2>
-              <p className="mt-1 max-w-md text-sm leading-relaxed text-slate-300">
-                Start a new voice conversation and practice the words you have saved.
-              </p>
-            </div>
-            <button
-              onClick={() => router.push('/talk')}
-              className="shrink-0 rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 transition-all hover:-translate-y-0.5 hover:bg-cyan-300"
-            >
-              Start talking →
-            </button>
+        <section>
+          <div className="mb-5">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">AI conversation</div>
+            <h1 className="mt-1 text-2xl font-bold text-slate-100">Choose how you want to practice</h1>
+            <p className="mt-1 text-sm text-slate-400">Practice saved vocabulary or bring a subject of your own.</p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <article className="flex min-h-64 flex-col justify-between rounded-3xl border border-indigo-400/25 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-xl shadow-black/20">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Vocabulary practice</div>
+                <h2 className="mt-3 text-xl font-bold">Practice your saved words</h2>
+                <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                  The AI chooses a new topic and naturally includes up to 10 words from your personal list.
+                </p>
+              </div>
+              <button
+                onClick={() => router.push('/talk')}
+                className="mt-6 w-fit rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 transition-all hover:-translate-y-0.5 hover:bg-cyan-300"
+              >
+                Practice vocabulary →
+              </button>
+            </article>
+
+            <article className="flex min-h-64 flex-col justify-between rounded-3xl border border-[#41c300]/30 bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 p-6 text-white shadow-xl shadow-black/20">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8cff52]">Open conversation</div>
+                <h2 className="mt-3 text-xl font-bold">Bring any topic</h2>
+                <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                  You begin the dialogue with any question, idea, or subject. Saved vocabulary is not used in this mode.
+                </p>
+              </div>
+              <button
+                onClick={() => router.push('/talk/open')}
+                className="mt-6 w-fit rounded-xl bg-[#41c300] px-4 py-3 text-sm font-bold text-slate-950 transition-all hover:-translate-y-0.5 hover:bg-[#56dc10]"
+              >
+                Start open conversation →
+              </button>
+            </article>
           </div>
         </section>
         )}

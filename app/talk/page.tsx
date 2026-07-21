@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { PERSONAL_VOCABULARY_EVENT } from '@/components/FloatingVocabulary'
 import { supabase } from '@/lib/supabase'
 
@@ -68,6 +68,8 @@ async function typeText(text: string, onProgress: (value: string) => void) {
 
 export default function TalkWithAiPage() {
   const router = useRouter()
+  const pathname = usePathname()
+  const isOpenMode = pathname === '/talk/open'
   const [profileId, setProfileId] = useState<string | null>(null)
   const [level, setLevel] = useState('B1')
   const [conversationId, setConversationId] = useState<string | null>(null)
@@ -262,6 +264,24 @@ export default function TalkWithAiPage() {
     setLoadingTopic(false)
   }, [speakAssistant])
 
+  const startOpenConversation = useCallback(async () => {
+    audioRef.current?.pause()
+    setLoadingTopic(true)
+    setError('')
+    setMessages([])
+    setConversationId(null)
+    setTopicTitle('Start with your idea')
+    setTopicCategory('Open conversation')
+    setTerms([])
+    setTranscript('')
+    setRecordingState('idle')
+    setFeedback(null)
+    setConversationFinished(false)
+    setPendingHistory(null)
+
+    setLoadingTopic(false)
+  }, [])
+
   useEffect(() => {
     if (initializedRef.current) return
     initializedRef.current = true
@@ -286,11 +306,15 @@ export default function TalkWithAiPage() {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const userLevel = (profile.levels as any)?.code ?? 'B1'
-      const activeTerms = await loadActiveTerms(profile.id)
       setProfileId(profile.id)
       setLevel(userLevel)
-      setTerms(activeTerms)
-      await startConversation(profile.id, userLevel, activeTerms)
+      if (isOpenMode) {
+        await startOpenConversation()
+      } else {
+        const activeTerms = await loadActiveTerms(profile.id)
+        setTerms(activeTerms)
+        await startConversation(profile.id, userLevel, activeTerms)
+      }
     }
 
     void initializeTalk()
@@ -299,16 +323,16 @@ export default function TalkWithAiPage() {
       recognitionRef.current?.stop()
       audioRef.current?.pause()
     }
-  }, [loadActiveTerms, router, startConversation])
+  }, [isOpenMode, loadActiveTerms, router, startConversation, startOpenConversation])
 
   useEffect(() => {
-    if (!profileId) return
+    if (!profileId || isOpenMode) return
     const refreshTerms = () => {
       void loadActiveTerms(profileId).then(setTerms)
     }
     window.addEventListener(PERSONAL_VOCABULARY_EVENT, refreshTerms)
     return () => window.removeEventListener(PERSONAL_VOCABULARY_EVENT, refreshTerms)
-  }, [loadActiveTerms, profileId])
+  }, [isOpenMode, loadActiveTerms, profileId])
 
   useEffect(() => {
     if (!feedback) return
@@ -319,6 +343,10 @@ export default function TalkWithAiPage() {
   async function handleNewTopic() {
     if (!profileId || loadingTopic || sending) return
     audioRef.current?.pause()
+    if (isOpenMode) {
+      await startOpenConversation()
+      return
+    }
     const activeTerms = await loadActiveTerms(profileId)
     setTerms(activeTerms)
     setTranscript('')
@@ -372,16 +400,44 @@ export default function TalkWithAiPage() {
 
   async function sendMessage() {
     const cleanTranscript = transcript.trim()
-    if (!conversationId || !cleanTranscript || sendingRef.current || pendingHistory) return
+    if (!cleanTranscript || sendingRef.current || pendingHistory) return
 
     sendingRef.current = true
     setSending(true)
     setError('')
     recognitionRef.current?.stop()
 
+    let activeConversationId = conversationId
+    if (!activeConversationId && isOpenMode && profileId) {
+      const now = new Date()
+      const { data: conversation, error: conversationError } = await supabase
+        .from('ai_conversations')
+        .insert({
+          user_id: profileId,
+          topic_title: `Open conversation ${now.toISOString()}`,
+          topic_category: 'Open conversation',
+          vocabulary_terms: [],
+        })
+        .select('id')
+        .single()
+
+      if (conversationError || !conversation) {
+        setError('The open conversation could not be created. Please try again.')
+        releaseSending()
+        return
+      }
+      activeConversationId = conversation.id
+      setConversationId(conversation.id)
+    }
+
+    if (!activeConversationId) {
+      releaseSending()
+      return
+    }
+
     const { data: savedUserMessage, error: userMessageError } = await supabase
       .from('ai_conversation_messages')
-      .insert({ conversation_id: conversationId, role: 'user', content: cleanTranscript })
+      .insert({ conversation_id: activeConversationId, role: 'user', content: cleanTranscript })
       .select('id, role, content')
       .single()
 
@@ -402,16 +458,22 @@ export default function TalkWithAiPage() {
       return
     }
 
-    await requestAssistantResponse(nextHistory)
+    await requestAssistantResponse(nextHistory, activeConversationId)
   }
 
-  async function requestAssistantResponse(history: ConversationMessage[]) {
+  async function requestAssistantResponse(history: ConversationMessage[], targetConversationId = conversationId) {
+    if (!targetConversationId) {
+      setError('The conversation is not ready. Please try again.')
+      releaseSending()
+      return
+    }
     try {
       const response = await fetch('/api/talk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'respond',
+          mode: isOpenMode ? 'open' : 'vocabulary',
           vocabulary: terms.map(item => item.term),
           history: history.map(item => ({ role: item.role, content: item.content })),
           level,
@@ -428,7 +490,7 @@ export default function TalkWithAiPage() {
 
       const { data: savedAssistantMessage, error: assistantMessageError } = await supabase
         .from('ai_conversation_messages')
-        .insert({ conversation_id: conversationId, role: 'assistant', content: generated.message })
+        .insert({ conversation_id: targetConversationId, role: 'assistant', content: generated.message })
         .select('id, role, content')
         .single()
 
@@ -540,15 +602,17 @@ export default function TalkWithAiPage() {
             ← Dashboard
           </button>
           <div className="text-center">
-            <div className="text-sm font-semibold">Talk with AI</div>
-            <div className="text-xs text-indigo-300">Voice practice with your own vocabulary</div>
+            <div className="text-sm font-semibold">{isOpenMode ? 'Open conversation' : 'Talk with AI'}</div>
+            <div className="text-xs text-indigo-300">
+              {isOpenMode ? 'Bring any question or topic' : 'Voice practice with your own vocabulary'}
+            </div>
           </div>
           <button
             onClick={handleNewTopic}
             disabled={loadingTopic || sending}
             className="rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 disabled:opacity-40"
           >
-            New topic
+            {isOpenMode ? 'New conversation' : 'New topic'}
           </button>
         </div>
       </header>
@@ -556,13 +620,13 @@ export default function TalkWithAiPage() {
       <main className="mx-auto max-w-3xl space-y-5 px-5 py-6 pb-56">
         <section className="overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-indigo-600/30 via-violet-600/15 to-cyan-500/10 p-6">
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
-            {topicCategory || 'Preparing a random topic'}
+            {topicCategory || (isOpenMode ? 'Open conversation' : 'Preparing a random topic')}
           </div>
           <div className="mt-2 flex items-center gap-3">
             <h1 className="text-2xl font-bold text-white">
-              {topicTitle || 'Your next conversation is loading...'}
+              {topicTitle || (isOpenMode ? 'Start with your idea' : 'Your next conversation is loading...')}
             </h1>
-            <button
+            {!isOpenMode && <button
               type="button"
               onClick={() => speakingMessageId === 'topic-title'
                 ? skipAssistantAudio()
@@ -573,12 +637,16 @@ export default function TalkWithAiPage() {
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-300/25 bg-cyan-300/10 text-base transition-all hover:scale-105 hover:bg-cyan-300/20 focus:outline-none focus:ring-2 focus:ring-cyan-300 disabled:cursor-not-allowed disabled:opacity-30"
             >
               <span aria-hidden="true">{speakingMessageId === 'topic-title' ? '■' : '🔊'}</span>
-            </button>
+            </button>}
           </div>
-          <p className="mt-2 text-sm text-slate-300">Every visit starts a different subject from your conversation history.</p>
+          <p className="mt-2 text-sm text-slate-300">
+            {isOpenMode
+              ? 'You begin the dialogue. Ask a question or introduce any subject you want to explore in English.'
+              : 'Every visit starts a different subject from your conversation history.'}
+          </p>
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        {!isOpenMode && <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-semibold">Words in this conversation</h2>
@@ -630,13 +698,13 @@ export default function TalkWithAiPage() {
               })}
             </div>
           )}
-        </section>
+        </section>}
 
         <section aria-live="polite" className="space-y-4">
           {loadingTopic && (
             <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-slate-300">
               <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-cyan-400" />
-              AI is choosing a topic it has never used with you...
+              {isOpenMode ? 'Preparing your open conversation...' : 'AI is choosing a topic it has never used with you...'}
             </div>
           )}
 
@@ -745,13 +813,13 @@ export default function TalkWithAiPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <div className="text-sm font-semibold text-emerald-300">Practice complete</div>
-                <p className="text-xs text-slate-400">Review your feedback above or continue with a different subject.</p>
+                <p className="text-xs text-slate-400">Review your feedback above or start another conversation.</p>
               </div>
               <button
                 onClick={handleNewTopic}
                 className="shrink-0 rounded-full bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-400"
               >
-                New topic →
+                {isOpenMode ? 'New conversation →' : 'New topic →'}
               </button>
             </div>
           ) : (
@@ -764,7 +832,9 @@ export default function TalkWithAiPage() {
                       ? 'Your answer is saved — retry the AI response'
                       : speakingMessageId
                         ? 'Listen to the AI, then answer'
-                        : 'Your turn — answer the AI question'}
+                        : isOpenMode && messages.length === 0
+                          ? 'Your turn — start with any question or topic'
+                          : 'Your turn — answer the AI question'}
                 </span>
                 <span className="text-slate-400">Response {Math.min(userTurnCount + 1, MAX_USER_TURNS)} of {MAX_USER_TURNS}</span>
               </div>
@@ -773,7 +843,11 @@ export default function TalkWithAiPage() {
                 onChange={event => { setTranscript(event.target.value); setRecordingState('review') }}
                 disabled={loadingTopic || sending || pendingHistory !== null}
                 rows={2}
-                placeholder={recordingState === 'recording' ? 'Your words will appear here as you speak...' : 'Speak or type your answer in English...'}
+                placeholder={recordingState === 'recording'
+                  ? 'Your words will appear here as you speak...'
+                  : isOpenMode && messages.length === 0
+                    ? 'What would you like to talk about?'
+                    : 'Speak or type your answer in English...'}
                 className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-indigo-400 disabled:opacity-50"
               />
 
@@ -817,7 +891,7 @@ export default function TalkWithAiPage() {
 
                 <button
                   onClick={sendMessage}
-                  disabled={!transcript.trim() || !conversationId || sending || pendingHistory !== null || recordingState === 'recording'}
+                  disabled={!transcript.trim() || (!conversationId && !isOpenMode) || sending || pendingHistory !== null || recordingState === 'recording'}
                   className="rounded-full bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   {userTurnCount + 1 >= MAX_USER_TURNS ? 'Send & get feedback →' : 'Send →'}
