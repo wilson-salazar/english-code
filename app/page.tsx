@@ -182,28 +182,28 @@ export default function AuthPage() {
 
   return (
     <div className="learning-theme min-h-screen bg-white flex">
-      <div className="hidden lg:flex w-2/5 flex-col justify-between border-r border-white/10 bg-gradient-to-br from-indigo-600/30 via-violet-600/15 to-cyan-500/10 p-12">
+      <div className="hidden lg:flex w-2/5 flex-col justify-between border-r border-white/10 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-12 text-white">
         <div className="flex items-center gap-2">
           <span className="text-white font-mono text-lg font-bold">{'</>'}</span>
-          <span className="text-indigo-200 font-mono text-sm">English Code</span>
+          <span className="font-mono text-sm text-slate-300">English Code</span>
         </div>
         <div>
           <h2 className="text-white text-3xl font-bold leading-snug mb-4">
             Real English for<br />real tech work.
           </h2>
-          <p className="text-indigo-200 text-sm leading-relaxed">
+          <p className="text-sm leading-relaxed text-slate-300">
             Learn the vocabulary, expressions, and conversation skills you actually use in standups, code reviews, bug reports, and technical interviews.
           </p>
           <div className="mt-10 space-y-3">
             {['Bug reports & tickets', 'Code review conversations', 'Technical interviews', 'Daily standups'].map(item => (
               <div key={item} className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-indigo-300" />
-                <span className="text-indigo-100 text-sm">{item}</span>
+                <div className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
+                <span className="text-sm text-slate-200">{item}</span>
               </div>
             ))}
           </div>
         </div>
-        <p className="text-indigo-300 text-xs">Built for QA engineers & developers</p>
+        <p className="text-xs text-slate-400">Built for QA engineers & developers</p>
       </div>
 
       <div className="flex-1 flex items-center justify-center px-6 py-12">
