@@ -125,7 +125,7 @@ export default function ScenarioPage() {
 
   if (loading) {
     return (
-      <div className="learning-theme min-h-screen flex items-center justify-center">
+      <div className="learning-theme min-h-screen bg-slate-950 flex items-center justify-center">
         <p className="text-slate-400 text-sm">Loading scenario...</p>
       </div>
     )
@@ -133,7 +133,7 @@ export default function ScenarioPage() {
 
   if (!scenario || phases.length === 0) {
     return (
-      <div className="learning-theme min-h-screen flex flex-col items-center justify-center gap-4">
+      <div className="learning-theme min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4">
         <p className="text-gray-500 text-sm">Could not load this scenario.</p>
         <button onClick={() => router.push('/dashboard')} className="text-indigo-600 text-sm underline">
           Back to dashboard
@@ -146,7 +146,7 @@ export default function ScenarioPage() {
   const progress = ((currentPhaseIndex) / phases.length) * 100
 
   return (
-    <div className="learning-theme min-h-screen bg-yellow-50">
+    <div className="learning-theme min-h-screen bg-slate-950 text-slate-100 [&_.bg-white]:!bg-white/5 [&_.bg-gray-50]:!bg-white/5 [&_.bg-gray-100]:!bg-white/10 [&_.bg-indigo-50]:!bg-indigo-400/10 [&_.bg-indigo-100]:!bg-indigo-400/15 [&_.bg-teal-50]:!bg-cyan-400/10 [&_.bg-orange-50]:!bg-amber-400/10 [&_.bg-orange-100]:!bg-amber-400/15 [&_.text-gray-900]:!text-slate-100 [&_.text-gray-800]:!text-slate-100 [&_.text-gray-700]:!text-slate-200 [&_.text-gray-600]:!text-slate-300 [&_.text-gray-500]:!text-slate-400 [&_.text-gray-400]:!text-slate-400 [&_.text-gray-300]:!text-slate-500 [&_.border-gray-50]:!border-white/10 [&_.border-gray-100]:!border-white/10 [&_.border-gray-200]:!border-white/10 [&_.border-indigo-100]:!border-indigo-400/25 [&_.border-teal-50]:!border-cyan-300/15 [&_.border-teal-100]:!border-cyan-300/20 [&_.border-orange-100]:!border-amber-300/20 [&_input]:!bg-white/5 [&_textarea]:!bg-white/5">
       {/* Header */}
       <header className="border-b border-white/10 bg-slate-950/90 px-6 py-4 backdrop-blur">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
@@ -158,12 +158,12 @@ export default function ScenarioPage() {
                 setCurrentPhaseIndex(i => i - 1)
               }
             }}
-            className="text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1"
+            className="flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-white"
           >
             {currentPhaseIndex === 0 ? '← Dashboard' : '← Back'}
           </button>
           <div className="text-center">
-            <div className="text-sm font-semibold text-gray-900">{scenario.title}</div>
+            <div className="text-sm font-semibold text-slate-100">{scenario.title}</div>
             <div className="flex items-center justify-center gap-1 mt-0.5">
               {currentPhase.phase_type === 'immersion' && (
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-gray-400">
@@ -191,15 +191,15 @@ export default function ScenarioPage() {
                   <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474ZM4.75 3.5A2.25 2.25 0 0 0 2.5 5.75v5.5A2.25 2.25 0 0 0 4.75 13.5h5.5a2.25 2.25 0 0 0 2.25-2.25v-2a.75.75 0 0 0-1.5 0v2a.75.75 0 0 1-.75.75h-5.5a.75.75 0 0 1-.75-.75v-5.5a.75.75 0 0 1 .75-.75h2a.75.75 0 0 0 0-1.5h-2Z"/>
                 </svg>
               )}
-              <span className="text-xs text-gray-400 capitalize">{currentPhase.phase_type}</span>
+              <span className="text-xs capitalize text-slate-400">{currentPhase.phase_type}</span>
             </div>
           </div>
-          <div className="text-xs text-gray-400 font-mono">
+          <div className="font-mono text-xs text-slate-400">
             {currentPhaseIndex + 1} / {phases.length}
           </div>
         </div>
         {/* Progress bar */}
-        <div className="max-w-2xl mx-auto mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
+        <div className="mx-auto mt-3 h-1 max-w-2xl overflow-hidden rounded-full bg-white/10">
           <div
             className="h-full bg-indigo-500 rounded-full transition-all duration-500"
             style={{ width: `${progress}%` }}
