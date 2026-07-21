@@ -33,6 +33,8 @@ export default function FloatingVocabulary() {
       setUserId(null)
       setTerms([])
       setIsOpen(false)
+      setTerm('')
+      setMessage('')
       return
     }
 
@@ -166,6 +168,8 @@ export default function FloatingVocabulary() {
       window.dispatchEvent(new Event(PERSONAL_VOCABULARY_EVENT))
     }
   }
+
+  if (!userId) return null
 
   return (
     <div className={`fixed right-4 z-50 sm:right-5 ${pathname === '/talk' ? 'bottom-52 sm:bottom-48' : 'bottom-4 sm:bottom-5'}`}>
