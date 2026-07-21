@@ -453,7 +453,7 @@ export default function TalkWithAiPage() {
     setTranscript('')
     setRecordingState('idle')
 
-    if (nextHistory.filter(item => item.role === 'user').length >= MAX_USER_TURNS) {
+    if (!isOpenMode && nextHistory.filter(item => item.role === 'user').length >= MAX_USER_TURNS) {
       await requestFeedback(nextHistory)
       return
     }
@@ -832,11 +832,15 @@ export default function TalkWithAiPage() {
                       ? 'Your answer is saved — retry the AI response'
                       : speakingMessageId
                         ? 'Listen to the AI, then answer'
-                        : isOpenMode && messages.length === 0
-                          ? 'Your turn — start with any question or topic'
+                        : isOpenMode
+                          ? messages.length === 0
+                            ? 'Your turn — start with any question or topic'
+                            : 'Your turn — continue the conversation'
                           : 'Your turn — answer the AI question'}
                 </span>
-                <span className="text-slate-400">Response {Math.min(userTurnCount + 1, MAX_USER_TURNS)} of {MAX_USER_TURNS}</span>
+                {!isOpenMode && (
+                  <span className="text-slate-400">Response {Math.min(userTurnCount + 1, MAX_USER_TURNS)} of {MAX_USER_TURNS}</span>
+                )}
               </div>
               <textarea
                 value={transcript}
@@ -878,13 +882,13 @@ export default function TalkWithAiPage() {
                     </button>
                   )}
 
-                  {userTurnCount >= 2 && (
+                  {userTurnCount >= (isOpenMode ? 1 : 2) && (
                     <button
                       onClick={finishConversation}
                       disabled={sending || recordingState === 'recording'}
                       className="px-2 py-2 text-xs font-semibold text-emerald-300 hover:text-emerald-200 disabled:opacity-40"
                     >
-                      Finish & feedback
+                      {isOpenMode ? 'Finish topic & feedback' : 'Finish & feedback'}
                     </button>
                   )}
                 </div>
@@ -894,7 +898,7 @@ export default function TalkWithAiPage() {
                   disabled={!transcript.trim() || (!conversationId && !isOpenMode) || sending || pendingHistory !== null || recordingState === 'recording'}
                   className="rounded-full bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-30"
                 >
-                  {userTurnCount + 1 >= MAX_USER_TURNS ? 'Send & get feedback →' : 'Send →'}
+                  {!isOpenMode && userTurnCount + 1 >= MAX_USER_TURNS ? 'Send & get feedback →' : 'Send →'}
                 </button>
               </div>
 

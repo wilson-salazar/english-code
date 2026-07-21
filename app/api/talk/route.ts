@@ -153,7 +153,9 @@ ${isOpenMode
   ? `The learner started this open conversation. Directly address their question or chosen subject, then continue naturally. Do not redirect to a random topic.`
   : `Continue the existing topic. Respond to what the learner actually said before adding a new fact or angle.`}
 Encourage communication rather than correcting every mistake.
-Your final sentence must be a direct question that invites the learner to answer.
+${isOpenMode
+  ? `Keep the exchange open naturally. Ask a question only when it is genuinely useful for the conversation.`
+  : `Your final sentence must be a direct question that invites the learner to answer.`}
 Return exactly: {"message":"your next turn","words_used":["saved terms actually used"]}`,
             messages: history,
           })
