@@ -184,7 +184,7 @@ export default function AuthPage() {
     <div className="learning-theme min-h-screen bg-white flex">
       <div className="hidden lg:flex w-2/5 flex-col justify-between border-r border-white/10 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-12 text-white">
         <div className="flex items-center gap-2">
-          <span className="text-white font-mono text-lg font-bold">{'</>'}</span>
+          <span className="font-mono text-lg font-bold text-[#41c300]">{'</>'}</span>
           <span className="font-mono text-sm text-slate-300">English Code</span>
         </div>
         <div>
@@ -209,7 +209,7 @@ export default function AuthPage() {
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-2 mb-8">
-            <span className="text-indigo-600 font-mono text-lg font-bold">{'</>'}</span>
+            <span className="font-mono text-lg font-bold text-[#41c300]">{'</>'}</span>
             <span className="text-gray-400 font-mono text-sm">English Code</span>
           </div>
 

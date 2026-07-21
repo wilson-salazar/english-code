@@ -225,7 +225,7 @@ export default function DashboardPage() {
       <header className="relative border-b border-white/10 bg-slate-950/90 px-6 py-4 backdrop-blur">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-indigo-600 font-mono text-base font-bold">{'</>'}</span>
+            <span className="font-mono text-base font-bold text-[#41c300]">{'</>'}</span>
             <span className="text-gray-400 font-mono text-sm">English Code</span>
           </div>
           <div className="text-right pr-12 sm:pr-0">
