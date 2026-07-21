@@ -118,7 +118,7 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
       const regex = new RegExp(`\\b(${w})\\b`, 'gi')
       result = result.replace(
         regex,
-        `<mark class="bg-indigo-100 text-indigo-800 rounded px-0.5 cursor-pointer vocab-word" data-word="${w}">$1</mark>`
+        `<mark class="cursor-pointer rounded bg-lime-400/20 px-0.5 text-lime-200 vocab-word" data-word="${w}">$1</mark>`
       )
     })
     result = result.replace(/\n/g, '<br />')
@@ -152,10 +152,10 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
   return (
     <div className="space-y-6">
       <div>
-        <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Immersion</span>
+        <span className="text-xs font-semibold uppercase tracking-widest text-cyan-300">Immersion</span>
         <h2 className="text-xl font-bold text-gray-900 mt-1">Read and explore</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Tap the <span className="bg-indigo-100 text-indigo-700 px-1 rounded text-xs">highlighted words</span> to see their meaning.
+          Tap the <span className="rounded bg-lime-400/20 px-1 text-xs text-lime-200">highlighted words</span> to see their meaning.
         </p>
       </div>
 
@@ -182,7 +182,7 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-base font-bold text-indigo-700">{selectedWord.word}</span>
+                <span className="text-base font-bold text-lime-200">{selectedWord.word}</span>
 
                 {/* Speaker button */}
                 <button
@@ -192,12 +192,12 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
                   title="Hear pronunciation"
                 >
                   {loadingWord ? (
-                    <svg className="w-3.5 h-3.5 text-indigo-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="h-3.5 w-3.5 animate-spin text-cyan-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                     </svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-cyan-300">
                       <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06ZM18.584 5.106a.75.75 0 0 1 1.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 0 1-1.06-1.06 8.25 8.25 0 0 0 0-11.668.75.75 0 0 1 0-1.06Z"/>
                       <path d="M15.932 7.757a.75.75 0 0 1 1.061 0 6 6 0 0 1 0 8.486.75.75 0 0 1-1.06-1.061 4.5 4.5 0 0 0 0-6.364.75.75 0 0 1 0-1.06Z"/>
                     </svg>
@@ -219,7 +219,7 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
                       <path fillRule="evenodd" d="M4.5 7.5a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-9Z" clipRule="evenodd"/>
                     </svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-cyan-300">
                       <path fillRule="evenodd" d="M12 5.25c1.213 0 2.415.046 3.605.135a3.256 3.256 0 0 1 3.01 3.01c.044.583.077 1.17.1 1.759L17.03 8.47a.75.75 0 1 0-1.06 1.06l3 3a.75.75 0 0 0 1.06 0l3-3a.75.75 0 0 0-1.06-1.06l-1.752 1.751c-.023-.65-.06-1.296-.108-1.939a4.756 4.756 0 0 0-4.392-4.392 49.422 49.422 0 0 0-7.436 0A4.756 4.756 0 0 0 3.89 8.282c-.017.224-.033.447-.046.672a.75.75 0 1 0 1.497.092c.013-.217.028-.434.044-.651a3.256 3.256 0 0 1 3.01-3.01c1.19-.09 2.392-.135 3.605-.135Zm-6.97 6.22a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.752-1.751c.023.65.06 1.296.108 1.939a4.756 4.756 0 0 0 4.392 4.392 49.413 49.413 0 0 0 7.436 0 4.756 4.756 0 0 0 4.392-4.392c.017-.224.033-.447.046-.672a.75.75 0 0 0-1.497-.092c-.013.217-.028.434-.044.651a3.256 3.256 0 0 1-3.01 3.01 47.893 47.893 0 0 1-7.21 0 3.256 3.256 0 0 1-3.01-3.01 47.859 47.859 0 0 1-.1-1.759L6.97 18.53a.75.75 0 0 0 1.06-1.06l-3-3Z" clipRule="evenodd"/>
                     </svg>
                   )}
@@ -256,7 +256,7 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
 
       {/* Vocabulary chips */}
       <div>
-        <p className="text-xs text-gray-400 mb-2 uppercase tracking-widest font-semibold">Words in this scenario</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">Words in this scenario</p>
         <div className="flex flex-wrap gap-2">
           {vocabulary.map(v => (
             <button
@@ -264,8 +264,8 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
               onClick={() => handleSelectWord(v)}
               className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                 revealed.has(v.word)
-                  ? 'border-indigo-300 bg-white text-indigo-700 shadow-sm'
-                  : 'border-gray-300 bg-white text-gray-600 hover:border-indigo-200 hover:text-indigo-600 shadow-sm'
+                  ? 'border-lime-300/40 bg-lime-400/10 text-lime-200 shadow-sm'
+                  : 'border-white/15 bg-white/5 text-slate-300 hover:border-cyan-300/40 hover:text-cyan-200 shadow-sm'
               }`}
             >
               {v.word}
