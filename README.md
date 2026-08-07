@@ -96,6 +96,10 @@ npm run db:reset  # Rebuild and seed the local database
 
 If you prefer guided installation, copy the prompt from [AI_SETUP_PROMPT.md](./AI_SETUP_PROMPT.md) and give it to your coding assistant after cloning the repository.
 
+## User guide
+
+For a walkthrough of the app itself (sign up, lessons, phases, Talk with AI) — written for end users, in Spanish — see [MANUAL_USUARIO.md](./MANUAL_USUARIO.md).
+
 ## Data and security
 
 - Database migrations are stored in `supabase/migrations`.
