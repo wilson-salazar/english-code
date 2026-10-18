@@ -36,9 +36,10 @@ interface Stats {
   totalResponses: number
   daysActive: number
   bestSkill: string
+  shadowExercisesCompleted: number
 }
 
-type DashboardView = 'learning' | 'talk' | 'progress'
+type DashboardView = 'learning' | 'talk' | 'shadow' | 'progress'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -87,10 +88,11 @@ export default function DashboardPage() {
 
     const userId = userData.id
 
-    const [{ data: scenarioList }, { data: progressList }, { data: responses }] = await Promise.all([
+    const [{ data: scenarioList }, { data: progressList }, { data: responses }, { count: shadowExercisesCompleted }] = await Promise.all([
       supabase.from('scenarios').select('id, title, context, order_index').eq('level_id', levelId).eq('is_published', true).order('order_index'),
       supabase.from('user_progress').select('scenario_id, status, score_vocabulary, score_clarity, score_naturalness').eq('user_id', userId),
       supabase.from('user_responses').select('score_vocabulary, score_clarity, score_naturalness, created_at').eq('user_id', userId),
+      supabase.from('shadow_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId),
     ])
 
     const progressMap = new Map(progressList?.map(p => [p.scenario_id, p]) ?? [])
@@ -162,6 +164,7 @@ export default function DashboardPage() {
       totalResponses: responses?.length ?? 0,
       daysActive: uniqueDays,
       bestSkill,
+      shadowExercisesCompleted: shadowExercisesCompleted ?? 0,
     })
 
     setLoading(false)
@@ -298,6 +301,7 @@ export default function DashboardPage() {
             {([
               { id: 'learning', label: 'Learning path', description: 'Lessons and scenarios' },
               { id: 'talk', label: 'Talk with AI', description: 'Voice conversation' },
+              { id: 'shadow', label: 'Shadow', description: 'Pronunciation practice' },
               { id: 'progress', label: 'Progress', description: 'KPIs and skills' },
             ] as Array<{ id: DashboardView; label: string; description: string }>).map(item => {
               const isActive = activeView === item.id
@@ -369,6 +373,35 @@ export default function DashboardPage() {
         </section>
         )}
 
+        {activeView === 'shadow' && (
+        <section>
+          <div className="mb-5">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Pronunciation</div>
+            <h1 className="mt-1 text-2xl font-bold text-slate-100">Shadow</h1>
+            <p className="mt-1 text-sm text-slate-400">
+              Repeat a short sentence word by word, then say it all at once — just like shadowing practice.
+            </p>
+          </div>
+
+          <article className="flex min-h-56 flex-col justify-between rounded-3xl border border-indigo-400/25 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-xl shadow-black/20">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Word-by-word shadowing</div>
+              <h2 className="mt-3 text-xl font-bold">A new random sentence every time</h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                The AI says a short sentence on a random topic, then guides you through it one word at a
+                time before you repeat the whole thing.
+              </p>
+            </div>
+            <button
+              onClick={() => router.push('/shadow')}
+              className="mt-6 w-fit rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 transition-all hover:-translate-y-0.5 hover:bg-cyan-300"
+            >
+              Start shadowing →
+            </button>
+          </article>
+        </section>
+        )}
+
         {/* Stats section */}
         {activeView === 'progress' && stats && (
           <section>
@@ -427,6 +460,14 @@ export default function DashboardPage() {
                   icon: 'M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z',
                   color: 'text-rose-600',
                   bg: 'bg-rose-50',
+                },
+                {
+                  label: 'Shadow exercises',
+                  value: stats.shadowExercisesCompleted,
+                  icon: 'M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.5a.75.75 0 0 1-.75-.75v-6a.75.75 0 0 1 .75-.75h2.25Z',
+                  color: 'text-cyan-600',
+                  bg: 'bg-cyan-50',
+                  stroke: true,
                 },
               ].map(({ label, value, icon, color, bg, stroke }) => (
                 <div key={label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 shadow-sm">

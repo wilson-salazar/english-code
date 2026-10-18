@@ -7,7 +7,7 @@
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` | uuid, PK | `default gen_random_uuid()` |
-| `user_id` | uuid, FK → `auth.users(id)` | Dueño del registro; mismo patrón que `user_progress`/`user_responses` |
+| `user_id` | uuid, FK → `public.users(id)` | Dueño del registro; mismo patrón que `user_chapter_progress`/`ai_conversations` (no es `auth.users` directo) |
 | `sentence` | text | Oración practicada |
 | `topic_category` | text | Tema/categoría asignado por la generación (p. ej. "technology", "psychology") |
 | `level` | text | Código de nivel CEFR del estudiante al momento del ejercicio (A2–C1) |
@@ -21,7 +21,8 @@
   app (A2–C1).
 
 **RLS (Principio III, NO NEGOCIABLE)**:
-- `select`, `insert`, `update`, `delete` solo donde `user_id = auth.uid()`.
+- `select`, `insert`, `update`, `delete` solo donde exista un `public.users` con `id = shadow_sessions.user_id`
+  y `auth_user_id = auth.uid()` (mismo patrón exacto que `user_chapter_progress`/`ai_conversations`).
 - Sin excepciones de service-role en código de cliente.
 
 **Migración**: archivo nuevo y aditivo en `supabase/migrations/` (no modifica tablas existentes).

@@ -26,7 +26,7 @@ repositorio, según `plan.md`.
 
 **Propósito**: crear la estructura de carpetas del módulo, sin lógica todavía.
 
-- [ ] T001 Crear la estructura de carpetas vacías `app/shadow/`, `app/api/shadow/generate/` y
+- [x] T001 Crear la estructura de carpetas vacías `app/shadow/`, `app/api/shadow/generate/` y
   `components/shadow/` según la Estructura del proyecto de `plan.md`.
 
 ---
@@ -37,26 +37,27 @@ repositorio, según `plan.md`.
 
 **⚠️ CRÍTICO**: ninguna historia de usuario puede empezar hasta que esta fase esté completa.
 
-- [ ] T002 [P] Crear la migración `supabase/migrations/<timestamp>_add_shadow_sessions.sql` con la tabla
-  `shadow_sessions` (`id` uuid PK, `user_id` uuid FK → `auth.users(id)`, `sentence` text, `topic_category`
-  text, `level` text, `completed_at` timestamptz, `created_at` timestamptz default now()) y políticas RLS
-  tal como las exige data-model.md: "select, insert, update, delete solo donde user_id = auth.uid()", sin
-  excepciones de service-role. Aplicar de forma incremental vía `psql` (nunca `supabase db reset`), según
-  el Principio III.
-- [ ] T003 [P] Implementar `POST /api/shadow/generate` en `app/api/shadow/generate/route.ts` siguiendo
+- [x] T002 [P] Crear la migración `supabase/migrations/20261017000000_add_shadow_sessions.sql` con la tabla
+  `shadow_sessions` (`id` uuid PK, `user_id` uuid FK → `public.users(id)` — no `auth.users` directo, mismo
+  patrón que `ai_conversations`/`user_chapter_progress` — `sentence` text, `topic_category` text, `level`
+  text, `completed_at` timestamptz, `created_at` timestamptz default now()) y políticas RLS tal como las
+  exige data-model.md (corregido durante la implementación): acceso solo donde exista un `public.users`
+  con `id = shadow_sessions.user_id` y `auth_user_id = auth.uid()`. Aplicada de forma incremental vía
+  `psql` (nunca `supabase db reset`), según el Principio III.
+- [x] T003 [P] Implementar `POST /api/shadow/generate` en `app/api/shadow/generate/route.ts` siguiendo
   exactamente el contrato de `contracts/shadow-generate-api.md`: recibe `{ level, recentSentences? }`,
   llama a Anthropic con el mismo SDK/modelo Haiku que ya usa `app/api/talk/route.ts`, y devuelve
   `{ sentence, topic_category }` donde `sentence` nunca coincide textualmente con ninguna de
   `recentSentences` (FR-001, SC-002). La llave `ANTHROPIC_API_KEY` solo se lee en esta ruta de servidor
   (Principio II).
-- [ ] T004 [P] Crear el helper de comparación de palabras en `lib/shadow.ts`: normaliza (minúsculas, sin
+- [x] T004 [P] Crear el helper de comparación de palabras en `lib/shadow.ts`: normaliza (minúsculas, sin
   puntuación ni acentos) tanto la palabra reconocida como la palabra objetivo y las compara por igualdad
   exacta tras normalizar, siguiendo la Decisión 1 de `research.md` (mismo criterio que
   `PracticePhase.tsx`).
-- [ ] T005 Crear el esqueleto de `components/shadow/ShadowSession.tsx` con el estado base del ejercicio
+- [x] T005 Crear el esqueleto de `components/shadow/ShadowSession.tsx` con el estado base del ejercicio
   (`ShadowExercise` de data-model.md: `sentence`, `words`, `topicCategory`, `level`) y la llamada inicial a
   `/api/shadow/generate` usando el nivel CEFR del estudiante (mismo mecanismo que ya usa Talk with AI).
-- [ ] T006 Crear `app/shadow/page.tsx` montando `ShadowSession` para el estudiante autenticado, y agregar
+- [x] T006 Crear `app/shadow/page.tsx` montando `ShadowSession` para el estudiante autenticado, y agregar
   la entrada al módulo Shadow desde `app/dashboard/page.tsx` (mismo patrón de acceso que Talk with AI).
 
 **Checkpoint**: la base está lista — las historias de usuario pueden empezar a construirse.
@@ -74,25 +75,27 @@ fin, y confirmar que se inserta exactamente un renglón en `shadow_sessions` (Es
 
 ### Implementación de la Historia de usuario 1
 
-- [ ] T007 [US1] Implementar en `ShadowSession.tsx` la reproducción de la oración completa vía `/api/tts`
+- [x] T007 [US1] Implementar en `ShadowSession.tsx` la reproducción de la oración completa vía `/api/tts`
   y el botón explícito para iniciar la práctica (FR-002, FR-003).
-- [ ] T008 [US1] Implementar `components/shadow/WordRepeatStep.tsx`: reproducir la palabra objetivo vía
+- [x] T008 [US1] Implementar `components/shadow/WordRepeatStep.tsx`: reproducir la palabra objetivo vía
   `/api/tts`, capturar el habla del estudiante con una instancia corta de `SpeechRecognition` por palabra
   (Decisión 2 de `research.md`), y evaluar el intento con `lib/shadow.ts` (FR-004, FR-006).
-- [ ] T009 [US1] Implementar en `WordRepeatStep.tsx` el límite de 3 intentos fallidos consecutivos por
+- [x] T009 [US1] Implementar en `WordRepeatStep.tsx` el límite de 3 intentos fallidos consecutivos por
   palabra (FR-007) y, al agotarlos, ofrecer "saltar palabra" u "oír más despacio" antes de continuar
   (FR-008).
-- [ ] T010 [US1] Implementar en `ShadowSession.tsx` el avance a la siguiente palabra únicamente tras un
+- [x] T010 [US1] Implementar en `ShadowSession.tsx` el avance a la siguiente palabra únicamente tras un
   intento aceptado o tras usar la opción de saltar de T009 (FR-009).
-- [ ] T011 [US1] Implementar `components/shadow/FinalSentenceStep.tsx`, el paso final de repetir la
-  oración completa de corrido, reutilizando el mismo mecanismo de grabación y evaluación que
-  `SpeakingPhase`/`evaluate-speech` ya usan (FR-010).
-- [ ] T012 [US1] Al completarse el paso final, marcar el ejercicio como terminado e insertar el renglón en
+- [x] T011 [US1] Implementar `components/shadow/FinalSentenceStep.tsx`, el paso final de repetir la
+  oración completa de corrido, reutilizando el mismo mecanismo de grabación (Web Speech API + transcripción
+  editable) ya usado en `SpeakingPhase`; la evaluación compara contra la oración objetivo con
+  `lib/shadow.ts` en lugar de calificar contenido libre, ya que aquí se trata de repetición verbatim, no de
+  calidad de contenido (FR-010).
+- [x] T012 [US1] Al completarse el paso final, marcar el ejercicio como terminado e insertar el renglón en
   `shadow_sessions` (oración, tema, nivel, fecha) desde `ShadowSession.tsx` (FR-011, FR-014).
-- [ ] T013 [US1] Mostrar en `WordRepeatStep.tsx`, para el intento en curso, tanto la palabra dicha por la
+- [x] T013 [US1] Mostrar en `WordRepeatStep.tsx`, para el intento en curso, tanto la palabra dicha por la
   IA como el texto reconocido del estudiante (FR-005, alcance mínimo de un solo intento — el historial
   completo de intentos se agrega en la Historia de usuario 3).
-- [ ] T014 [US1] Manejar en `ShadowSession.tsx`/`WordRepeatStep.tsx` el permiso de micrófono denegado o no
+- [x] T014 [US1] Manejar en `ShadowSession.tsx`/`WordRepeatStep.tsx` el permiso de micrófono denegado o no
   disponible, con un mensaje claro para el estudiante (FR-012, caso límite del spec).
 
 **Checkpoint**: la Historia de usuario 1 debe funcionar y poder probarse de forma independiente (MVP).
@@ -109,9 +112,9 @@ distintos a los del ejercicio inmediatamente anterior (Escenario 2 de `quickstar
 
 ### Implementación de la Historia de usuario 2
 
-- [ ] T015 [US2] Mantener en `ShadowSession.tsx` la lista de oraciones ya usadas en la sesión actual y
+- [x] T015 [US2] Mantener en `ShadowSession.tsx` la lista de oraciones ya usadas en la sesión actual y
   enviarla como `recentSentences` en cada llamada a `/api/shadow/generate` (FR-001).
-- [ ] T016 [US2] Agregar en `ShadowSession.tsx` la acción "practicar de nuevo" que reinicia el estado del
+- [x] T016 [US2] Agregar en `ShadowSession.tsx` la acción "practicar de nuevo" que reinicia el estado del
   ejercicio y solicita una nueva oración, sin límite de ejercicios por sesión (FR-012, SC-002).
 
 **Checkpoint**: las historias 1 y 2 funcionan juntas — ninguna oración se repite dentro de la misma sesión.
@@ -128,9 +131,9 @@ intentos previos queda visible en el cuadro de texto (Historia de usuario 3, esc
 
 ### Implementación de la Historia de usuario 3
 
-- [ ] T017 [US3] Extender `WordRepeatStep.tsx` para acumular y mostrar la lista completa de `WordAttempt`
+- [x] T017 [US3] Extender `WordRepeatStep.tsx` para acumular y mostrar la lista completa de `WordAttempt`
   (de `data-model.md`) de la palabra en curso, no solo el último intento.
-- [ ] T018 [US3] Distinguir visualmente en el cuadro de texto los intentos aceptados, rechazados y
+- [x] T018 [US3] Distinguir visualmente en el cuadro de texto los intentos aceptados, rechazados y
   saltados, usando el campo `skipped`/`accepted` de `WordAttempt`.
 
 **Checkpoint**: las 3 historias de usuario funcionan de forma independiente.
@@ -141,15 +144,21 @@ intentos previos queda visible en el cuadro de texto (Historia de usuario 3, esc
 
 **Propósito**: mejoras que afectan a varias historias a la vez.
 
-- [ ] T019 [P] Mostrar en `app/dashboard/page.tsx` cuántos ejercicios de Shadow ha completado el
+- [x] T019 [P] Mostrar en `app/dashboard/page.tsx` cuántos ejercicios de Shadow ha completado el
   estudiante, leyendo `shadow_sessions` (SC-005).
-- [ ] T020 Manejar en `ShadowSession.tsx` los casos límite restantes del spec: navegador sin soporte de
-  `SpeechRecognition`, silencio/ruido de fondo sin reconocimiento, palabra completamente distinta a la
-  esperada, y fallo o demora de `/api/shadow/generate` (sección "Casos límite" de `spec.md`).
-- [ ] T021 Verificar el Principio VI: ejecutar `npx tsc --noEmit`, `npm run lint`, y probar manualmente
-  los Escenarios 1 y 2 de `quickstart.md` con `npm run dev` contra Supabase local.
-- [ ] T022 [P] Confirmar el aislamiento RLS de `shadow_sessions` con dos usuarios de prueba distintos
-  (Escenario 3 de `quickstart.md`).
+- [x] T020 Manejar en `ShadowSession.tsx`/`WordRepeatStep.tsx`/`FinalSentenceStep.tsx` los casos límite
+  restantes del spec: navegador sin soporte de `SpeechRecognition`, silencio/ruido de fondo sin
+  reconocimiento (intento rechazado con "no speech detected"), palabra completamente distinta a la
+  esperada (no coincide tras normalizar), y fallo o demora de `/api/shadow/generate` (pantalla de error
+  con reintento) (sección "Casos límite" de `spec.md`).
+- [x] T021 Verificar el Principio VI: `npx tsc --noEmit` y `npm run lint` sin errores, `npm run build`
+  exitoso (se tocaron rutas nuevas), y prueba manual end-to-end en `npm run dev` contra Supabase local con
+  una cuenta de prueba (generación de oración, TTS, flujo palabra por palabra, límite de 3 intentos +
+  saltar, historial de intentos, paso final, y KPI del dashboard).
+- [x] T022 [P] Confirmar el aislamiento RLS de `shadow_sessions`: verificado funcionalmente (no solo
+  estructuralmente) con el token de la cuenta de prueba autenticada — insertar con su propio `user_id`
+  devuelve 201, insertar con un `user_id` ajeno devuelve 403 (`42501`, violación de RLS), y un `select`
+  solo devuelve sus propios renglones. Datos y cuenta de prueba eliminados después de verificar.
 
 ---
 
