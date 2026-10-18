@@ -31,6 +31,7 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
   const [slow, setSlow] = useState(false)
   const recognitionRef = useRef<SpeechRecognitionType>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const playedRef = useRef(false)
 
   const playWord = useCallback(async (playbackRate: number) => {
     try {
@@ -59,7 +60,12 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
   useEffect(() => {
     // A fresh `key={wordIndex}` mount (see ShadowSession) means state above
     // already starts clean for each word — this effect only plays the audio.
-    void playWord(1)
+    // `playedRef` guards against React Strict Mode's dev-only double-invoke,
+    // which would otherwise play the word twice at once.
+    if (!playedRef.current) {
+      playedRef.current = true
+      void playWord(1)
+    }
     return () => {
       recognitionRef.current?.stop()
       audioRef.current?.pause()
