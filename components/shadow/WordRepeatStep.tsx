@@ -25,6 +25,7 @@ const MAX_ATTEMPTS = 3
 export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved }: Props) {
   const [attempts, setAttempts] = useState<WordAttemptRecord[]>([])
   const [listenState, setListenState] = useState<ListenState>('idle')
+  const [liveTranscript, setLiveTranscript] = useState('')
   const [speechUnsupported, setSpeechUnsupported] = useState(false)
   const [micError, setMicError] = useState('')
   const [slow, setSlow] = useState(false)
@@ -89,14 +90,20 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
     }
 
     setMicError('')
+    setLiveTranscript('')
     const recognition = new SpeechRecognition()
     recognition.lang = 'en-US'
-    recognition.continuous = false
-    recognition.interimResults = false
+    recognition.continuous = true
+    recognition.interimResults = true
 
-    let heard: string | null = null
+    let heard = ''
     recognition.onresult = (event: SpeechRecognitionType) => {
-      heard = event.results[0]?.[0]?.transcript ?? null
+      let text = ''
+      for (let index = 0; index < event.results.length; index++) {
+        text += `${event.results[index][0].transcript} `
+      }
+      heard = text.trim()
+      setLiveTranscript(heard)
     }
     recognition.onerror = (event: SpeechRecognitionType) => {
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
@@ -105,12 +112,16 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
     }
     recognition.onend = () => {
       setListenState('evaluating')
-      evaluateAttempt(heard)
+      evaluateAttempt(heard || null)
     }
 
     recognitionRef.current = recognition
     setListenState('listening')
     recognition.start()
+  }
+
+  function stopListening() {
+    recognitionRef.current?.stop()
   }
 
   async function listenMoreSlowly() {
@@ -163,9 +174,16 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
           )}
 
           {listenState === 'listening' && (
-            <div className="flex items-center gap-2 text-sm font-semibold text-red-300">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />
-              Listening...
+            <div className="flex flex-col items-center gap-2">
+              <button
+                type="button"
+                onClick={stopListening}
+                className="inline-flex items-center gap-2 rounded-full bg-red-500 px-6 py-3 text-sm font-semibold text-white"
+              >
+                <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
+                Stop — I said it
+              </button>
+              {liveTranscript && <p className="text-xs text-slate-400">Hearing: &ldquo;{liveTranscript}&rdquo;</p>}
             </div>
           )}
 
