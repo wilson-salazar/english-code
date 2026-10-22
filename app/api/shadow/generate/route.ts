@@ -24,7 +24,7 @@ function parseModelJson(text: string): ShadowGenerateResult {
 export async function POST(request: NextRequest) {
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
-      { error: 'Shadow requires ANTHROPIC_API_KEY in .env.local.' },
+      { error: 'Shadowing requires ANTHROPIC_API_KEY in .env.local.' },
       { status: 503 }
     )
   }

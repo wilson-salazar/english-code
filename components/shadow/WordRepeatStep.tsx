@@ -165,7 +165,7 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
 
       {speechUnsupported ? (
         <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
-          Voice recognition is unavailable in this browser. Please use Google Chrome to practice Shadow.
+          Voice recognition is unavailable in this browser. Please use Google Chrome to practice Shadowing.
         </div>
       ) : (
         <div className="flex flex-col items-center gap-3">

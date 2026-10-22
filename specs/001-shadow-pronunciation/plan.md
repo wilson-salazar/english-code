@@ -1,4 +1,4 @@
-# Plan de implementación: Shadow — práctica de pronunciación por repetición
+# Plan de implementación: Shadowing — práctica de pronunciación por repetición
 
 **Rama**: `001-shadow-pronunciation` | **Fecha**: 2026-10-17 | **Spec**: [spec.md](./spec.md)
 
@@ -6,7 +6,7 @@
 
 ## Resumen
 
-Nuevo módulo independiente ("Shadow") que entrena la pronunciación del estudiante mediante shadowing:
+Nuevo módulo independiente ("Shadowing") que entrena la pronunciación del estudiante mediante shadowing:
 el sistema genera una oración corta en inglés sobre un tema aleatorio acorde al nivel del estudiante, la
 reproduce completa, y luego guía al estudiante palabra por palabra (reproducción + repetición + evaluación,
 con hasta 3 intentos y opción de saltar), terminando con la repetición de la oración completa. El enfoque
@@ -58,11 +58,11 @@ el historial — no se tocan los módulos de escenarios ni Talk with AI existent
 
 | Principio | Estado | Justificación |
 |---|---|---|
-| I. Contenido pensado para el estudiante | PASS | Las oraciones se generan acordes al nivel CEFR del estudiante y el feedback (repetir palabra, saltar) es constructivo. Shadow es un módulo independiente como Talk with AI, por lo que la secuencia de fases immersion→listening→comprehension→speaking→expression no aplica (igual que no aplica a Talk with AI). |
+| I. Contenido pensado para el estudiante | PASS | Las oraciones se generan acordes al nivel CEFR del estudiante y el feedback (repetir palabra, saltar) es constructivo. Shadowing es un módulo independiente como Talk with AI, por lo que la secuencia de fases immersion→listening→comprehension→speaking→expression no aplica (igual que no aplica a Talk with AI). |
 | II. Secretos solo en el servidor / una sola puerta por integración | PASS | La generación de oraciones llama a Anthropic solo desde una nueva ruta de servidor (`app/api/shadow/generate`); la síntesis de voz reutiliza `/api/tts` sin exponer IDs de voz ni llaves en el cliente. |
 | III. Seguridad de datos y RLS (NO NEGOCIABLE) | PASS | El historial de práctica vive en una tabla nueva (`shadow_sessions`) con RLS limitada al dueño, migrada de forma incremental (nuevo archivo en `supabase/migrations/`); no se reinicia ninguna base con datos reales. |
 | IV. Local-first y privado | PASS | No se introduce ninguna dependencia de nube; se apoya en el mismo Supabase local y el mismo acceso remoto vía Tailscale. |
-| V. Contratos de componentes estables | N/A | Shadow no es una fase de escenario (no usa el contrato `onComplete()` de `components/phases/*`); es un flujo independiente, como `app/talk/`. |
+| V. Contratos de componentes estables | N/A | Shadowing no es una fase de escenario (no usa el contrato `onComplete()` de `components/phases/*`); es un flujo independiente, como `app/talk/`. |
 | VI. Verificado antes de terminar | PASS | El plan exige `tsc --noEmit`, `npm run lint`, prueba manual (`npm run dev`) y `npm run build` si se tocan rutas/config, antes de dar por terminada la funcionalidad. |
 
 Sin violaciones de la constitución; no se requiere Complexity Tracking.
@@ -91,7 +91,7 @@ specs/001-shadow-pronunciation/
 ```text
 app/
 ├── shadow/
-│   └── page.tsx                      # Pantalla principal del módulo Shadow
+│   └── page.tsx                      # Pantalla principal del módulo Shadowing
 └── api/
     └── shadow/
         └── generate/
@@ -110,7 +110,7 @@ supabase/
 
 **Decisión de estructura**: se sigue la convención ya establecida por el resto de la app (Next.js App
 Router con componentes por módulo bajo `components/<modulo>/`), sin introducir una separación
-frontend/backend ni un proyecto nuevo — Shadow es una pantalla más dentro de la misma aplicación Next.js,
+frontend/backend ni un proyecto nuevo — Shadowing es una pantalla más dentro de la misma aplicación Next.js,
 igual que `app/talk/`.
 
 ## Complexity Tracking

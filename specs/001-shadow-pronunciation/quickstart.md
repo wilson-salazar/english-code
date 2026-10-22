@@ -1,4 +1,4 @@
-# Guía de validación — Shadow (práctica de pronunciación)
+# Guía de validación — Shadowing (práctica de pronunciación)
 
 Pasos para comprobar manualmente que el módulo cumple el spec ([spec.md](./spec.md)) de principio a fin.
 No sustituye al Principio VI (`tsc --noEmit`, `npm run lint`, `npm run build` si aplica).
@@ -13,7 +13,7 @@ No sustituye al Principio VI (`tsc --noEmit`, `npm run lint`, `npm run build` si
 
 ## Escenario 1 — Flujo completo de un ejercicio (Historia de usuario 1, P1)
 
-1. `npm run dev` y abrir el módulo Shadow desde el dashboard.
+1. `npm run dev` y abrir el módulo Shadowing desde el dashboard.
 2. Confirmar que se presenta una oración corta en inglés y que se reproduce en voz alta completa antes de
    poder iniciar la práctica (FR-001, FR-002).
 3. Pulsar el botón de inicio y confirmar que la IA pronuncia la primera palabra.
@@ -39,10 +39,10 @@ No sustituye al Principio VI (`tsc --noEmit`, `npm run lint`, `npm run build` si
 
 ## Escenario 3 — Progreso visible en el dashboard (FR-014, SC-005)
 
-1. Completar al menos un ejercicio de Shadow (Escenario 1).
-2. Abrir el dashboard y confirmar que el conteo de ejercicios de Shadow completados por el estudiante es
+1. Completar al menos un ejercicio de Shadowing (Escenario 1).
+2. Abrir el dashboard y confirmar que el conteo de ejercicios de Shadowing completados por el estudiante es
    visible, sin ayuda externa.
-3. Iniciar sesión con un segundo usuario de prueba y confirmar que **no** puede ver el historial de Shadow
+3. Iniciar sesión con un segundo usuario de prueba y confirmar que **no** puede ver el historial de Shadowing
    del primer usuario (RLS, Principio III).
 
 ## Casos límite a probar manualmente

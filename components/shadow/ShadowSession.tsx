@@ -165,7 +165,7 @@ export default function ShadowSession() {
             ← Dashboard
           </button>
           <div className="text-center">
-            <div className="text-sm font-semibold">Shadow</div>
+            <div className="text-sm font-semibold">Shadowing</div>
             <div className="text-xs text-indigo-300">Pronunciation shadowing practice</div>
           </div>
           <span className="text-xs text-slate-500">{exercisesCompleted} done this session</span>

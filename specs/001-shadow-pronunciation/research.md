@@ -1,4 +1,4 @@
-# Investigación — Fase 0: Shadow (práctica de pronunciación)
+# Investigación — Fase 0: Shadowing (práctica de pronunciación)
 
 ## 1. Cómo determinar si una palabra fue "pronunciada correctamente"
 
@@ -71,5 +71,5 @@ ya validado en producción (variedad de temas, nivel acorde al estudiante, sin r
 
 **Confirmación** (no requirió una decisión nueva): la ruta existente `/api/tts` ya reproduce textos cortos
 arbitrarios — hoy se usa para reproducir palabras sueltas de vocabulario y títulos de tema en Talk with AI.
-Shadow reutiliza esa misma ruta tanto para cada palabra como para la oración completa, sin ningún cambio
+Shadowing reutiliza esa misma ruta tanto para cada palabra como para la oración completa, sin ningún cambio
 en `/api/tts` ni en los IDs de voz.

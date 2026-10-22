@@ -1,6 +1,6 @@
 # Contrato: `POST /api/shadow/generate`
 
-Única puerta de servidor para generar una oración y un tema de práctica de Shadow (Principio II: la llave
+Única puerta de servidor para generar una oración y un tema de práctica de Shadowing (Principio II: la llave
 de Anthropic nunca sale del servidor). Sigue el mismo patrón que `app/api/talk/route.ts` usa para generar
 temas de conversación.
 

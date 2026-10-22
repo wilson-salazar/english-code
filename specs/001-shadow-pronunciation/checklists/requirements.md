@@ -1,4 +1,4 @@
-# Checklist de calidad de la especificación: Shadow — práctica de pronunciación por repetición
+# Checklist de calidad de la especificación: Shadowing — práctica de pronunciación por repetición
 
 **Propósito**: Validar que la especificación esté completa y sea de calidad antes de pasar a la planeación
 **Creado**: 2026-10-17

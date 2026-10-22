@@ -1,4 +1,4 @@
-# Tareas: Shadow — práctica de pronunciación por repetición
+# Tareas: Shadowing — práctica de pronunciación por repetición
 
 **Entrada**: Documentos de diseño en `/specs/001-shadow-pronunciation/`
 
@@ -58,7 +58,7 @@ repositorio, según `plan.md`.
   (`ShadowExercise` de data-model.md: `sentence`, `words`, `topicCategory`, `level`) y la llamada inicial a
   `/api/shadow/generate` usando el nivel CEFR del estudiante (mismo mecanismo que ya usa Talk with AI).
 - [x] T006 Crear `app/shadow/page.tsx` montando `ShadowSession` para el estudiante autenticado, y agregar
-  la entrada al módulo Shadow desde `app/dashboard/page.tsx` (mismo patrón de acceso que Talk with AI).
+  la entrada al módulo Shadowing desde `app/dashboard/page.tsx` (mismo patrón de acceso que Talk with AI).
 
 **Checkpoint**: la base está lista — las historias de usuario pueden empezar a construirse.
 
@@ -69,7 +69,7 @@ repositorio, según `plan.md`.
 **Meta**: oración completa en voz alta → repetición palabra por palabra con hasta 3 intentos y opción de
 saltar → repetición final de la oración completa → ejercicio marcado como terminado y registrado.
 
-**Prueba independiente**: iniciar el módulo Shadow, completar el flujo de una sola oración de principio a
+**Prueba independiente**: iniciar el módulo Shadowing, completar el flujo de una sola oración de principio a
 fin, y confirmar que se inserta exactamente un renglón en `shadow_sessions` (Escenario 1 de
 `quickstart.md`).
 
@@ -144,7 +144,7 @@ intentos previos queda visible en el cuadro de texto (Historia de usuario 3, esc
 
 **Propósito**: mejoras que afectan a varias historias a la vez.
 
-- [x] T019 [P] Mostrar en `app/dashboard/page.tsx` cuántos ejercicios de Shadow ha completado el
+- [x] T019 [P] Mostrar en `app/dashboard/page.tsx` cuántos ejercicios de Shadowing ha completado el
   estudiante, leyendo `shadow_sessions` (SC-005).
 - [x] T020 Manejar en `ShadowSession.tsx`/`WordRepeatStep.tsx`/`FinalSentenceStep.tsx` los casos límite
   restantes del spec: navegador sin soporte de `SpeechRecognition`, silencio/ruido de fondo sin

@@ -1,8 +1,8 @@
-# Modelo de datos — Shadow (práctica de pronunciación)
+# Modelo de datos — Shadowing (práctica de pronunciación)
 
 ## Entidades persistidas (Supabase)
 
-### `shadow_sessions` (Historial de práctica de Shadow — FR-014)
+### `shadow_sessions` (Historial de práctica de Shadowing — FR-014)
 
 | Campo | Tipo | Notas |
 |---|---|---|

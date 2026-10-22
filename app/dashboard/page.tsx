@@ -332,7 +332,7 @@ export default function DashboardPage() {
               { id: 'learning', label: 'Learning path', description: 'Lessons and scenarios' },
               { id: 'grammar', label: 'Grammar', description: 'Core grammar chapters' },
               { id: 'talk', label: 'Talk with AI', description: 'Voice conversation' },
-              { id: 'shadow', label: 'Shadow', description: 'Pronunciation practice' },
+              { id: 'shadow', label: 'Shadowing', description: 'Pronunciation practice' },
               { id: 'progress', label: 'Progress', description: 'KPIs and skills' },
             ] as Array<{ id: DashboardView; label: string; description: string }>).map(item => {
               const isActive = activeView === item.id
@@ -408,7 +408,7 @@ export default function DashboardPage() {
         <section>
           <div className="mb-5">
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Pronunciation</div>
-            <h1 className="mt-1 text-2xl font-bold text-slate-100">Shadow</h1>
+            <h1 className="mt-1 text-2xl font-bold text-slate-100">Shadowing</h1>
             <p className="mt-1 text-sm text-slate-400">
               Repeat a short sentence word by word, then say it all at once — just like shadowing practice.
             </p>
@@ -493,7 +493,7 @@ export default function DashboardPage() {
                   bg: 'bg-rose-50',
                 },
                 {
-                  label: 'Shadow exercises',
+                  label: 'Shadowing exercises',
                   value: stats.shadowExercisesCompleted,
                   icon: 'M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.5a.75.75 0 0 1-.75-.75v-6a.75.75 0 0 1 .75-.75h2.25Z',
                   color: 'text-cyan-600',
