@@ -200,7 +200,7 @@ export default function ShadowSession() {
               <button
                 type="button"
                 onClick={() => void playSentence(exercise.sentence)}
-                className="mt-3 text-xs font-semibold text-cyan-300 hover:text-cyan-200"
+                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-cyan-300/40 bg-cyan-400/10 px-5 py-2.5 text-sm font-semibold text-cyan-200 transition-colors hover:bg-cyan-400/20"
               >
                 🔊 Listen again
               </button>
