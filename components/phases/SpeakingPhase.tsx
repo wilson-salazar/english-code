@@ -199,10 +199,25 @@ export default function SpeakingPhase({ content, scenarioTitle, onComplete }: Pr
           </div>
 
           {/* Transcript */}
-          {transcript && (
+          {(transcript || recordState === 'done') && (
             <div className="bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">What we heard</p>
-              <p className="text-sm text-gray-700 leading-relaxed">{transcript}</p>
+              {recordState === 'done' ? (
+                <>
+                  <textarea
+                    value={transcript}
+                    onChange={e => setTranscript(e.target.value)}
+                    rows={4}
+                    placeholder="Type what you said..."
+                    className="w-full text-sm text-gray-700 leading-relaxed border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent resize-y transition"
+                  />
+                  <p className="text-xs text-gray-400 mt-2">
+                    Speech recognition can make mistakes. Fix any word it misheard before getting feedback.
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-gray-700 leading-relaxed">{transcript}</p>
+              )}
             </div>
           )}
 
