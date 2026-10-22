@@ -22,6 +22,9 @@ interface ShadowGenerateResponse {
 
 type Stage = 'loading' | 'intro' | 'words' | 'final' | 'done' | 'error'
 
+const GENERATE_TIMEOUT_MS = 20000
+const HISTORY_LIMIT = 20
+
 export default function ShadowSession() {
   const router = useRouter()
   const [profileId, setProfileId] = useState<string | null>(null)
@@ -31,7 +34,10 @@ export default function ShadowSession() {
   const [error, setError] = useState('')
   const [wordIndex, setWordIndex] = useState(0)
   const [exercisesCompleted, setExercisesCompleted] = useState(0)
+  const [saveFailed, setSaveFailed] = useState(false)
+  const [saving, setSaving] = useState(false)
   const usedSentencesRef = useRef<string[]>([])
+  const lastTopicRef = useRef('')
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const initializedRef = useRef(false)
 
@@ -62,26 +68,49 @@ export default function ShadowSession() {
     audioRef.current?.pause()
     setStage('loading')
     setError('')
+    setSaveFailed(false)
 
-    const response = await fetch('/api/shadow/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ level: userLevel, recentSentences: usedSentencesRef.current }),
-    })
-    const data = await response.json() as ShadowGenerateResponse
-    const words = data.sentence ? splitIntoWords(data.sentence) : []
+    // A network failure or a server that never answers must end in the error
+    // screen with a retry, not in an endless "Preparing a new sentence...".
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), GENERATE_TIMEOUT_MS)
 
-    if (!response.ok || !data.sentence || !data.topic_category || words.length === 0) {
-      setError(data.error ?? 'A new sentence could not be generated. Please try again.')
+    try {
+      const response = await fetch('/api/shadow/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          level: userLevel,
+          recentSentences: usedSentencesRef.current,
+          previousTopic: lastTopicRef.current,
+        }),
+        signal: controller.signal,
+      })
+      const data = await response.json().catch(() => ({})) as ShadowGenerateResponse
+      const words = data.sentence ? splitIntoWords(data.sentence) : []
+
+      if (!response.ok || !data.sentence || !data.topic_category || words.length === 0) {
+        setError(data.error ?? 'A new sentence could not be generated. Please try again.')
+        setStage('error')
+        return
+      }
+
+      usedSentencesRef.current = [...usedSentencesRef.current, data.sentence].slice(-50)
+      lastTopicRef.current = data.topic_category
+      setExercise({ sentence: data.sentence, words, topicCategory: data.topic_category, level: userLevel })
+      setWordIndex(0)
+      setStage('intro')
+      void playSentence(data.sentence)
+    } catch {
+      setError(
+        controller.signal.aborted
+          ? 'Generating the sentence took too long. Please try again.'
+          : 'Could not reach the server. Check your connection and try again.'
+      )
       setStage('error')
-      return
+    } finally {
+      clearTimeout(timeout)
     }
-
-    usedSentencesRef.current = [...usedSentencesRef.current, data.sentence].slice(-50)
-    setExercise({ sentence: data.sentence, words, topicCategory: data.topic_category, level: userLevel })
-    setWordIndex(0)
-    setStage('intro')
-    void playSentence(data.sentence)
   }, [playSentence])
 
   useEffect(() => {
@@ -110,6 +139,21 @@ export default function ShadowSession() {
       const userLevel = (profile.levels as any)?.code ?? 'B1'
       setProfileId(profile.id)
       setLevel(userLevel)
+
+      // Seed the "recent" lists from the saved history so a new visit does not
+      // repeat the last sentence or topic (SC-002). If this read fails the
+      // session simply starts without history.
+      const { data: history } = await supabase
+        .from('shadow_sessions')
+        .select('sentence, topic_category')
+        .eq('user_id', profile.id)
+        .order('completed_at', { ascending: false })
+        .limit(HISTORY_LIMIT)
+      if (history && history.length > 0) {
+        usedSentencesRef.current = history.map(row => row.sentence).reverse()
+        lastTopicRef.current = history[0].topic_category
+      }
+
       await loadExercise(userLevel)
     }
 
@@ -135,19 +179,35 @@ export default function ShadowSession() {
     }
   }
 
-  async function finishExercise() {
-    if (!exercise || !profileId) {
-      setStage('done')
-      return
-    }
+  async function saveExercise(): Promise<boolean> {
+    if (!exercise || !profileId) return false
     const { error: insertError } = await supabase.from('shadow_sessions').insert({
       user_id: profileId,
       sentence: exercise.sentence,
       topic_category: exercise.topicCategory,
       level: exercise.level,
     })
-    if (!insertError) setExercisesCompleted(count => count + 1)
+    return !insertError
+  }
+
+  async function finishExercise() {
+    if (saving) return
+    setSaving(true)
+    const saved = await saveExercise()
+    if (saved) setExercisesCompleted(count => count + 1)
+    setSaveFailed(!saved)
+    setSaving(false)
     setStage('done')
+  }
+
+  async function retrySave() {
+    setSaving(true)
+    const saved = await saveExercise()
+    if (saved) {
+      setExercisesCompleted(count => count + 1)
+      setSaveFailed(false)
+    }
+    setSaving(false)
   }
 
   async function practiceAgain() {
@@ -232,6 +292,19 @@ export default function ShadowSession() {
           <section className="space-y-4 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-6 text-center">
             <div className="text-sm font-semibold text-emerald-300">Exercise complete 🎉</div>
             <p className="text-sm text-slate-200">Great shadowing! Ready for another sentence on a new topic?</p>
+            {saveFailed && (
+              <div className="space-y-2 rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-200" role="alert">
+                <p>We could not save this exercise to your progress.</p>
+                <button
+                  type="button"
+                  onClick={() => void retrySave()}
+                  disabled={saving}
+                  className="rounded-lg bg-amber-300/15 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-300/25 disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Try saving again'}
+                </button>
+              </div>
+            )}
             <button
               onClick={() => void practiceAgain()}
               className="w-full rounded-xl bg-indigo-500 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-400"

@@ -29,11 +29,13 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
   const [speechUnsupported, setSpeechUnsupported] = useState(false)
   const [micError, setMicError] = useState('')
   const [slow, setSlow] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
   const recognitionRef = useRef<SpeechRecognitionType>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const playedRef = useRef(false)
 
   const playWord = useCallback(async (playbackRate: number) => {
+    setIsPlaying(true)
     try {
       const response = await fetch('/api/tts', {
         method: 'POST',
@@ -54,6 +56,8 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
       URL.revokeObjectURL(url)
     } catch {
       // Audio is a convenience; the word text is always visible on screen.
+    } finally {
+      setIsPlaying(false)
     }
   }, [word])
 
@@ -82,6 +86,13 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
     setListenState('idle')
     if (accepted) {
       onResolved(false)
+      return
+    }
+    // FR-007: after a rejected attempt the AI says the word again. After the
+    // last allowed attempt the student is offered slow playback or skipping instead.
+    const failedSoFar = attempts.filter(attempt => !attempt.accepted && !attempt.skipped).length + 1
+    if (failedSoFar < MAX_ATTEMPTS) {
+      void playWord(slow ? 0.7 : 1)
     }
   }
 
@@ -103,6 +114,9 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
     recognition.interimResults = true
 
     let heard = ''
+    // A denied permission or a missing microphone is not a pronunciation attempt,
+    // so it must not use up one of the student's attempts (FR-013).
+    let blocked = false
     recognition.onresult = (event: SpeechRecognitionType) => {
       let text = ''
       for (let index = 0; index < event.results.length; index++) {
@@ -113,10 +127,18 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
     }
     recognition.onerror = (event: SpeechRecognitionType) => {
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        blocked = true
         setMicError('Microphone access was denied. Please allow microphone access and try again.')
+      } else if (event.error === 'audio-capture') {
+        blocked = true
+        setMicError('No microphone was found. Connect one and try again.')
       }
     }
     recognition.onend = () => {
+      if (blocked) {
+        setListenState('idle')
+        return
+      }
       setListenState('evaluating')
       evaluateAttempt(heard || null)
     }
@@ -173,7 +195,8 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
             <button
               type="button"
               onClick={startListening}
-              className="inline-flex items-center gap-2 rounded-full bg-cyan-500 px-6 py-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400"
+              disabled={isPlaying}
+              className="inline-flex items-center gap-2 rounded-full bg-cyan-500 px-6 py-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               🎙 {attempts.length === 0 ? 'Your turn — repeat it' : 'Try again'}
             </button>

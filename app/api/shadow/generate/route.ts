@@ -4,7 +4,10 @@ import Anthropic from '@anthropic-ai/sdk'
 interface ShadowGenerateRequest {
   level?: string
   recentSentences?: string[]
+  previousTopic?: string
 }
+
+const MAX_GENERATION_ATTEMPTS = 3
 
 interface ShadowGenerateResult {
   sentence: string
@@ -35,6 +38,8 @@ export async function POST(request: NextRequest) {
     .map(sentence => sentence.trim())
     .filter(Boolean)
     .slice(-50)
+  const previousTopic = (body.previousTopic ?? '').trim().slice(0, 120)
+  const normalizedPreviousTopic = previousTopic.toLowerCase()
 
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -46,7 +51,7 @@ Return only valid JSON. Do not wrap it in markdown.`
 
   try {
     let lastError: unknown
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt++) {
       const message = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 300,
@@ -57,7 +62,7 @@ Return only valid JSON. Do not wrap it in markdown.`
           content: `Sentences already used for this learner (never repeat one of these, and prefer a different topic):
 ${recentSentences.length > 0 ? recentSentences.map(sentence => `- ${sentence}`).join('\n') : '- None yet'}
 
-Return exactly this JSON shape:
+${previousTopic ? `The previous exercise used the topic category "${previousTopic}". The new sentence MUST be about a clearly different topic category.\n\n` : ''}Return exactly this JSON shape:
 {
   "sentence": "the short English sentence",
   "topic_category": "one broad category"
@@ -71,6 +76,10 @@ Return exactly this JSON shape:
         const normalized = result.sentence.trim().toLowerCase()
         if (recentSentences.some(sentence => sentence.trim().toLowerCase() === normalized)) {
           lastError = new Error('The AI repeated a previous sentence.')
+          continue
+        }
+        if (normalizedPreviousTopic && result.topic_category.trim().toLowerCase() === normalizedPreviousTopic) {
+          lastError = new Error('The AI repeated the previous topic.')
           continue
         }
         return NextResponse.json(result)
