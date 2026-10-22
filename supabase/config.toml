@@ -74,7 +74,10 @@ sql_paths = [
   "./seed_scenarios_6_9.sql",
   "./add_listening_speaking_phases.sql",
   "./fix_jsonb_arrays.sql",
-  "./add_phonetics.sql"
+  "./add_phonetics.sql",
+  "./seed_chapters_a2.sql",
+  "./seed_chapters_b2.sql",
+  "./seed_chapters_b2_passive.sql"
 ]
 
 [db.network_restrictions]

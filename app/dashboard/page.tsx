@@ -19,6 +19,15 @@ interface User {
   levels: { id: string; code: string; name: string } | null
 }
 
+interface Chapter {
+  id: string
+  title: string
+  description: string
+  order_index: number
+  status: 'locked' | 'in_progress' | 'completed'
+  score: number | null
+}
+
 interface LevelOption {
   id: string
   code: string
@@ -39,12 +48,13 @@ interface Stats {
   shadowExercisesCompleted: number
 }
 
-type DashboardView = 'learning' | 'talk' | 'shadow' | 'progress'
+type DashboardView = 'learning' | 'grammar' | 'talk' | 'shadow' | 'progress'
 
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [scenarios, setScenarios] = useState<Scenario[]>([])
+  const [chapters, setChapters] = useState<Chapter[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [availableLevels, setAvailableLevels] = useState<LevelOption[]>([])
@@ -88,10 +98,12 @@ export default function DashboardPage() {
 
     const userId = userData.id
 
-    const [{ data: scenarioList }, { data: progressList }, { data: responses }, { count: shadowExercisesCompleted }] = await Promise.all([
+    const [{ data: scenarioList }, { data: progressList }, { data: responses }, { data: chapterList }, { data: chapterProgressList }, { count: shadowExercisesCompleted }] = await Promise.all([
       supabase.from('scenarios').select('id, title, context, order_index').eq('level_id', levelId).eq('is_published', true).order('order_index'),
       supabase.from('user_progress').select('scenario_id, status, score_vocabulary, score_clarity, score_naturalness').eq('user_id', userId),
       supabase.from('user_responses').select('score_vocabulary, score_clarity, score_naturalness, created_at').eq('user_id', userId),
+      supabase.from('chapters').select('id, title, description, order_index').eq('level_id', levelId).eq('is_published', true).order('order_index'),
+      supabase.from('user_chapter_progress').select('chapter_id, status, score_grammar, score_clarity, score_naturalness').eq('user_id', userId),
       supabase.from('shadow_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId),
     ])
 
@@ -114,6 +126,24 @@ export default function DashboardPage() {
     })
 
     setScenarios(enriched)
+
+    const chapterProgressMap = new Map(chapterProgressList?.map(p => [p.chapter_id, p]) ?? [])
+    const enrichedChapters: Chapter[] = (chapterList ?? []).map((c, i) => {
+      const progress = chapterProgressMap.get(c.id)
+      const prevCompleted = i === 0 || chapterProgressMap.get((chapterList ?? [])[i - 1]?.id)?.status === 'completed'
+      let status: Chapter['status'] = 'locked'
+      if (progress) {
+        status = progress.status as Chapter['status']
+      } else if (prevCompleted) {
+        status = 'in_progress'
+      }
+      const scores = progress
+        ? [progress.score_grammar, progress.score_clarity, progress.score_naturalness].filter(Boolean) as number[]
+        : []
+      const score = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null
+      return { ...c, status, score }
+    })
+    setChapters(enrichedChapters)
 
     // Calculate stats
     const currentScenarioIds = new Set((scenarioList ?? []).map(s => s.id))
@@ -300,6 +330,7 @@ export default function DashboardPage() {
           <nav aria-label="Dashboard sections" className="flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-slate-900/80 p-2 shadow-xl shadow-black/10 md:flex-col">
             {([
               { id: 'learning', label: 'Learning path', description: 'Lessons and scenarios' },
+              { id: 'grammar', label: 'Grammar', description: 'Core grammar chapters' },
               { id: 'talk', label: 'Talk with AI', description: 'Voice conversation' },
               { id: 'shadow', label: 'Shadow', description: 'Pronunciation practice' },
               { id: 'progress', label: 'Progress', description: 'KPIs and skills' },
@@ -602,6 +633,99 @@ export default function DashboardPage() {
                         {isDone && scenario.score !== null && (
                           <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
                             {scenario.score}%
+                          </span>
+                        )}
+                        {isActive && (
+                          <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
+                            Start →
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </section>
+        )}
+
+        {/* Grammar chapters */}
+        {activeView === 'grammar' && (
+        <section>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-slate-100">Grammar chapters</h1>
+            <p className="mt-1 text-sm text-slate-400">
+              {chapters.length === 0
+                ? 'Chapters are being prepared. Check back soon.'
+                : `${chapters.filter(c => c.status === 'completed').length} of ${chapters.length} chapters completed`}
+            </p>
+            {chapters.length > 0 && (
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full bg-indigo-500 rounded-full transition-all"
+                  style={{ width: `${(chapters.filter(c => c.status === 'completed').length / chapters.length) * 100}%` }}
+                />
+              </div>
+            )}
+          </div>
+
+          {chapters.length === 0 && (
+            <div className="text-center py-24">
+              <div className="text-5xl mb-4">📘</div>
+              <p className="text-sm text-slate-400">No grammar chapters available yet for your level.</p>
+              <p className="mt-1 text-xs text-slate-500">We&apos;re working on it.</p>
+            </div>
+          )}
+
+          {chapters.length > 0 && (
+            <div className="space-y-3">
+              {chapters.map(chapter => {
+                const isActive = chapter.status === 'in_progress'
+                const isDone = chapter.status === 'completed'
+                const isLocked = chapter.status === 'locked'
+
+                return (
+                  <button
+                    key={chapter.id}
+                    onClick={() => !isLocked && router.push(`/chapter/${chapter.id}`)}
+                    disabled={isLocked}
+                    className={`w-full text-left rounded-2xl border px-5 py-4 transition-all ${
+                      isDone
+                        ? 'border-emerald-300/25 bg-white/5 hover:border-emerald-300/40'
+                        : isActive
+                        ? 'border-indigo-400/35 bg-white/5 shadow-md hover:border-indigo-300/60 hover:bg-white/10 hover:shadow-lg cursor-pointer'
+                        : 'border-white/10 bg-white/5 opacity-40 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+                          isDone ? 'bg-green-100' : isActive ? 'bg-indigo-100' : 'bg-gray-100'
+                        }`}>
+                          {isDone ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-green-600">
+                              <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd"/>
+                            </svg>
+                          ) : isActive ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-indigo-600">
+                              <path d="M6.3 2.84A1.5 1.5 0 0 0 4 4.11v11.78a1.5 1.5 0 0 0 2.3 1.27l9.344-5.891a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z"/>
+                            </svg>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-400">
+                              <path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-slate-100">{chapter.title}</div>
+                          <div className="mt-0.5 line-clamp-1 text-xs text-slate-400">{chapter.description}</div>
+                        </div>
+                      </div>
+                      <div className="shrink-0">
+                        {isDone && chapter.score !== null && (
+                          <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                            {chapter.score}%
                           </span>
                         )}
                         {isActive && (

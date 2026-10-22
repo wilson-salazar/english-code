@@ -255,6 +255,7 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
       )}
 
       {/* Vocabulary chips */}
+      {vocabulary.length > 0 && (
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">Words in this scenario</p>
         <div className="flex flex-wrap gap-2">
@@ -273,6 +274,7 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
           ))}
         </div>
       </div>
+      )}
 
       <button
         onClick={onComplete}
