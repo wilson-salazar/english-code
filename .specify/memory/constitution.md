@@ -88,6 +88,15 @@ regresiones.
   Check).
 - Se usa una rama de git por etapa de SDD, creada desde la anterior, con un commit al final de cada
   etapa. NO DEBEN mezclarse cambios no relacionados en un mismo commit.
+- Alcance de cada cambio, según su tipo:
+  1. Cambio visual o de textos que no altera el comportamiento (estilos, tamaños, redacción): no
+     modifica la spec; se describe en el mensaje del commit. Si el cambio renombra algo que la spec
+     nombra, la spec se actualiza en el mismo commit.
+  2. Cambio de comportamiento en una funcionalidad que ya tiene spec: se actualiza la spec con
+     `/speckit-clarify`, se anexan tareas nuevas sin borrar las existentes (`/speckit-tasks`) y se
+     implementa solo lo nuevo. No se reinicia el ciclo desde cero.
+  3. Funcionalidad nueva: flujo completo de Spec Kit.
+  Ante la duda sobre si un cambio altera el comportamiento, se trata como el caso 2.
 - Todo conjunto de cambios DEBE indicar qué principios toca y confirmar que pasó la barrera del
   Principio VI (tipos, lint, build cuando aplique y verificación manual).
 - Los cambios de base de datos DEBEN revisarse por su impacto en RLS y por su carácter destructivo antes
@@ -114,4 +123,4 @@ ella.
   y las revisiones de cambios DEBEN verificar el cumplimiento; las violaciones se corrigen o se
   justifican por escrito.
 
-**Versión**: 1.0.0 | **Ratificada**: 2026-10-17 | **Última enmienda**: 2026-10-17
+**Versión**: 1.1.0 | **Ratificada**: 2026-10-17 | **Última enmienda**: 2026-10-22
