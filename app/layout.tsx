@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import FloatingVocabulary from "@/components/FloatingVocabulary";
 import "./globals.css";
@@ -16,6 +16,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "English Code",
   description: "Technical English for QA engineers and software developers",
+  appleWebApp: {
+    capable: true,
+    title: "English Code",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#020617",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
