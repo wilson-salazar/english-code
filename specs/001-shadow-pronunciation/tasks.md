@@ -252,7 +252,7 @@ Task: "Crear el helper de comparación de palabras en lib/shadow.ts"
 - [X] T027 En `finishExercise` de `components/shadow/ShadowSession.tsx`, informar al estudiante cuando falle
   el `insert` en `shadow_sessions` y ofrecer reintentar, para que el ejercicio no quede sin registrar en
   silencio, per FR-014 (partial)
-- [ ] T028 Revisar y justificar los elementos que la spec no describe: el botón "Listen again" de
+- [X] T028 Revisar y justificar los elementos que la spec no describe: el botón "Listen again" de
   `ShadowSession.tsx`, `WordRepeatStep.tsx` y `FinalSentenceStep.tsx`, y el contador "N done this session"
   de `ShadowSession.tsx`; registrarlos en `spec.md` con `/speckit-clarify` o retirarlos, per spec.md
   (unrequested)
