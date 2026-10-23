@@ -3,8 +3,10 @@
 ## 1. Cómo determinar si una palabra fue "pronunciada correctamente"
 
 **Decisión**: Usar el reconocimiento de voz del navegador (Web Speech API, ya usado en `SpeakingPhase` y
-Talk with AI) en una instancia corta por palabra; normalizar (minúsculas, sin puntuación ni acentos) tanto
-la palabra reconocida como la palabra objetivo, y compararlas por coincidencia exacta tras normalizar —
+Talk with AI) en una instancia corta por palabra; normalizar (minúsculas, sin puntuación ni acentos, y con
+los números escritos en dígitos pasados a palabras en inglés, porque el reconocimiento escribe "20" cuando
+el estudiante dijo "twenty") tanto la palabra reconocida como la palabra objetivo, y compararlas por
+coincidencia exacta tras normalizar —
 el mismo criterio de comparación simple ya usado en `PracticePhase.tsx` (`normalize(answer) ===
 normalize(correctAnswer)`).
 
