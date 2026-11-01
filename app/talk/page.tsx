@@ -98,8 +98,20 @@ export default function TalkWithAiPage() {
   // True while the learner is reading the bottom of the chat; false once they scroll up,
   // so new text never pulls the page away from something they are rereading.
   const stickToBottomRef = useRef(true)
+  // Identifies the latest playback: audio that finishes loading after the learner skipped it
+  // or asked for something else must stay silent.
+  const playbackIdRef = useRef(0)
+
+  const stopAudio = useCallback(() => {
+    playbackIdRef.current += 1
+    audioRef.current?.pause()
+    setSpeakingMessageId(null)
+  }, [])
 
   const speakAssistant = useCallback(async (messageId: string, text: string, animateText = true) => {
+    playbackIdRef.current += 1
+    const playbackId = playbackIdRef.current
+    const isCurrent = () => playbackIdRef.current === playbackId
     audioRef.current?.pause()
     setSpeakingMessageId(messageId)
     setVisibleAssistantText(animateText ? '' : text)
@@ -114,6 +126,8 @@ export default function TalkWithAiPage() {
       if (!response.ok) throw new Error('TTS unavailable')
 
       const blob = await response.blob()
+      if (!isCurrent()) return
+
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
       audioRef.current = audio
@@ -139,22 +153,24 @@ export default function TalkWithAiPage() {
       ])
 
       URL.revokeObjectURL(url)
-      setVisibleAssistantText(text)
+      if (isCurrent()) setVisibleAssistantText(text)
     } catch {
+      if (!isCurrent()) return
       if (animateText) {
-        await typeText(text, setVisibleAssistantText)
+        await typeText(text, value => {
+          if (isCurrent()) setVisibleAssistantText(value)
+        })
       } else {
         setVisibleAssistantText(text)
       }
     } finally {
-      setSpeakingMessageId(null)
+      if (isCurrent()) setSpeakingMessageId(null)
     }
   }, [])
 
   function skipAssistantAudio() {
-    audioRef.current?.pause()
+    stopAudio()
     setVisibleAssistantText(speakingFullText)
-    setSpeakingMessageId(null)
   }
 
   const loadActiveTerms = useCallback(async (userId: string) => {
@@ -269,7 +285,7 @@ export default function TalkWithAiPage() {
   }, [speakAssistant])
 
   const startOpenConversation = useCallback(async () => {
-    audioRef.current?.pause()
+    stopAudio()
     setLoadingTopic(true)
     setError('')
     setMessages([])
@@ -284,7 +300,7 @@ export default function TalkWithAiPage() {
     setPendingHistory(null)
 
     setLoadingTopic(false)
-  }, [])
+  }, [stopAudio])
 
   useEffect(() => {
     if (initializedRef.current) return
@@ -325,9 +341,9 @@ export default function TalkWithAiPage() {
 
     return () => {
       recognitionRef.current?.stop()
-      audioRef.current?.pause()
+      stopAudio()
     }
-  }, [isOpenMode, loadActiveTerms, router, startConversation, startOpenConversation])
+  }, [isOpenMode, loadActiveTerms, router, startConversation, startOpenConversation, stopAudio])
 
   useEffect(() => {
     if (!profileId || isOpenMode) return
@@ -366,7 +382,8 @@ export default function TalkWithAiPage() {
 
   async function handleNewTopic() {
     if (!profileId || loadingTopic || sending) return
-    audioRef.current?.pause()
+    stopAudio()
+    discardRecognition()
     setMicError('')
     if (isOpenMode) {
       await startOpenConversation()
@@ -377,6 +394,17 @@ export default function TalkWithAiPage() {
     setTranscript('')
     setRecordingState('idle')
     await startConversation(profileId, level, activeTerms)
+  }
+
+  // Turns the microphone off without letting its last results overwrite the answer box.
+  function discardRecognition() {
+    const recognition = recognitionRef.current
+    if (!recognition) return
+    recognition.onresult = null
+    recognition.onerror = null
+    recognition.onend = null
+    recognition.abort()
+    recognitionRef.current = null
   }
 
   function startRecording() {
@@ -446,7 +474,7 @@ export default function TalkWithAiPage() {
 
   async function sendMessage() {
     const cleanTranscript = transcript.trim()
-    if (!cleanTranscript || sendingRef.current || pendingHistory) return
+    if (!cleanTranscript || sendingRef.current || pendingHistory || reachedResponseLimit) return
 
     sendingRef.current = true
     stickToBottomRef.current = true
@@ -575,44 +603,49 @@ export default function TalkWithAiPage() {
       return
     }
 
-    const response = await fetch('/api/talk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'feedback',
-        history: history.map(item => ({ role: item.role, content: item.content })),
-        level,
-      }),
-    })
-    const generated = await response.json() as TalkApiResponse
+    try {
+      const response = await fetch('/api/talk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'feedback',
+          history: history.map(item => ({ role: item.role, content: item.content })),
+          level,
+        }),
+      })
+      const generated = await response.json() as TalkApiResponse
 
-    if (!response.ok || !generated.message || !generated.feedback) {
-      setError(generated.error ?? 'Your feedback could not be generated. Please try again.')
+      if (!response.ok || !generated.message || !generated.feedback) {
+        setError(generated.error ?? 'Your feedback could not be generated. Please try again.')
+        releaseSending()
+        return
+      }
+
+      const { data: savedClosing, error: closingError } = await supabase
+        .from('ai_conversation_messages')
+        .insert({ conversation_id: conversationId, role: 'assistant', content: generated.message })
+        .select('id, role, content')
+        .single()
+
+      if (closingError || !savedClosing) {
+        setError('Your feedback could not be saved.')
+        releaseSending()
+        return
+      }
+
+      const closingMessage = savedClosing as ConversationMessage
+      setMessages(current => [...current, closingMessage])
+      setFeedback(generated.feedback)
+      setConversationFinished(true)
+      setTranscript('')
+      setRecordingState('idle')
+      setPendingHistory(null)
       releaseSending()
-      return
-    }
-
-    const { data: savedClosing, error: closingError } = await supabase
-      .from('ai_conversation_messages')
-      .insert({ conversation_id: conversationId, role: 'assistant', content: generated.message })
-      .select('id, role, content')
-      .single()
-
-    if (closingError || !savedClosing) {
-      setError('Your feedback could not be saved.')
+      await speakAssistant(closingMessage.id, closingMessage.content)
+    } catch {
+      setError('The connection was interrupted while preparing your feedback. Your answers are safe; please try again.')
       releaseSending()
-      return
     }
-
-    const closingMessage = savedClosing as ConversationMessage
-    setMessages(current => [...current, closingMessage])
-    setFeedback(generated.feedback)
-    setConversationFinished(true)
-    setTranscript('')
-    setRecordingState('idle')
-    setPendingHistory(null)
-    releaseSending()
-    await speakAssistant(closingMessage.id, closingMessage.content)
   }
 
   async function finishConversation() {
@@ -638,6 +671,7 @@ export default function TalkWithAiPage() {
   }
 
   const userTurnCount = messages.filter(message => message.role === 'user').length
+  const reachedResponseLimit = !isOpenMode && userTurnCount >= MAX_USER_TURNS
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -878,13 +912,15 @@ export default function TalkWithAiPage() {
                     ? 'Preparing the conversation…'
                     : pendingHistory
                       ? 'Your answer is saved — retry the AI response'
-                      : speakingMessageId
-                        ? 'Listen to the AI, then answer'
-                        : isOpenMode
-                          ? messages.length === 0
-                            ? 'Your turn — start with any question or topic'
-                            : 'Your turn — continue the conversation'
-                          : 'Your turn — answer the AI question'}
+                      : reachedResponseLimit
+                        ? 'All your responses are saved — use Finish & feedback to try again'
+                        : speakingMessageId
+                          ? 'Listen to the AI, then answer'
+                          : isOpenMode
+                            ? messages.length === 0
+                              ? 'Your turn — start with any question or topic'
+                              : 'Your turn — continue the conversation'
+                            : 'Your turn — answer the AI question'}
                 </span>
                 {!isOpenMode && (
                   <span className="text-slate-400">Response {Math.min(userTurnCount + 1, MAX_USER_TURNS)} of {MAX_USER_TURNS}</span>
@@ -892,8 +928,12 @@ export default function TalkWithAiPage() {
               </div>
               <textarea
                 value={transcript}
-                onChange={event => { setTranscript(event.target.value); setRecordingState('review') }}
-                disabled={loadingTopic || sending || pendingHistory !== null}
+                onChange={event => {
+                  if (recordingState === 'recording') discardRecognition()
+                  setTranscript(event.target.value)
+                  setRecordingState('review')
+                }}
+                disabled={loadingTopic || sending || pendingHistory !== null || reachedResponseLimit}
                 rows={3}
                 placeholder={recordingState === 'recording'
                   ? 'Your words will appear here as you speak...'
@@ -908,7 +948,7 @@ export default function TalkWithAiPage() {
                   {recordingState !== 'recording' ? (
                     <button
                       onClick={startRecording}
-                      disabled={loadingTopic || sending || pendingHistory !== null || speakingMessageId !== null}
+                      disabled={loadingTopic || sending || pendingHistory !== null || speakingMessageId !== null || reachedResponseLimit}
                       className="inline-flex items-center gap-2 rounded-full bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400 disabled:opacity-40"
                     >
                       <span aria-hidden="true">🎙</span>
@@ -943,7 +983,7 @@ export default function TalkWithAiPage() {
 
                 <button
                   onClick={sendMessage}
-                  disabled={!transcript.trim() || (!conversationId && !isOpenMode) || sending || pendingHistory !== null || recordingState === 'recording'}
+                  disabled={!transcript.trim() || (!conversationId && !isOpenMode) || sending || pendingHistory !== null || recordingState === 'recording' || reachedResponseLimit}
                   className="rounded-full bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   {!isOpenMode && userTurnCount + 1 >= MAX_USER_TURNS ? 'Send & get feedback →' : 'Send →'}
