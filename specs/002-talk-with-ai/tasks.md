@@ -178,3 +178,16 @@ Este archivo es la base para las siguientes funcionalidades del módulo. Según 
 - La etiqueta `[US1]` a `[US4]` traza cada tarea a su historia en `spec.md`.
 - Commitear después de cada tarea o grupo lógico, sin mezclar cambios no relacionados en el mismo commit (regla de la constitución).
 - Nunca ejecutar `supabase db reset` sobre una base con cuentas reales: FR-020 no toca la base de datos.
+
+---
+
+## Fase 7: Convergence (convergencia con la spec)
+
+**Propósito**: cerrar las brechas entre la spec/plan y el código actual, detectadas por `/speckit-converge` el 2026-11-01. Ordenadas de mayor a menor severidad.
+
+- [ ] T032 En `app/api/talk/route.ts`, hacer que la constante `system` exija terminar con una pregunta solo en el modo vocabulario: hoy dice "ending with one engaging question" también en el modo abierto, y eso contradice la instrucción de `respond` ("Ask a question only when it is genuinely useful") según FR-011 (contradicts)
+- [ ] T033 En `requestFeedback` de `app/talk/page.tsx`, capturar los fallos de `fetch` y de lectura de la respuesta, mostrar un error claro y liberar `sending`: hoy una conexión interrumpida deja "AI is thinking..." para siempre y los botones deshabilitados, según Casos límite (falla la retroalimentación) y FR-009 (partial)
+- [ ] T034 En `speakAssistant` y `skipAssistantAudio` de `app/talk/page.tsx`, cancelar la reproducción anterior aunque el audio siga pidiéndose a `/api/tts`: hoy, si el estudiante salta o cambia de mensaje antes de que llegue, ese audio suena igual, sin botón para detenerlo y pudiendo solaparse con otro, según FR-014 y SC-003 (partial)
+- [ ] T035 En el `<textarea>` y `startRecording` de `app/talk/page.tsx`, detener el reconocimiento de voz si el estudiante edita el cuadro mientras graba: hoy `onChange` pasa a `review` sin detenerlo, desaparece "Stop" y el siguiente `onresult` reemplaza lo editado, según FR-012 e Historia 3 escenario 2 (partial)
+- [ ] T036 En `handleNewTopic` de `app/talk/page.tsx`, detener el reconocimiento de voz antes de cambiar de tema: hoy sigue activo y escribe en el cuadro de la conversación nueva, según FR-010 y FR-012 (partial)
+- [ ] T037 En `sendMessage` de `app/talk/page.tsx`, impedir una sexta respuesta en el modo vocabulario: si falla la retroalimentación tras la quinta, el cuadro sigue disponible y se puede guardar otra respuesta; el reintento debe seguir siendo "Finish & feedback", según FR-006 (partial)
