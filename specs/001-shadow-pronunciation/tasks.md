@@ -256,3 +256,15 @@ Task: "Crear el helper de comparación de palabras en lib/shadow.ts"
   `ShadowSession.tsx`, `WordRepeatStep.tsx` y `FinalSentenceStep.tsx`, y el contador "N done this session"
   de `ShadowSession.tsx`; registrarlos en `spec.md` con `/speckit-clarify` o retirarlos, per spec.md
   (unrequested)
+
+---
+
+## Fase 7: Convergence (convergencia con la spec)
+
+**Propósito**: brecha detectada por `/speckit-converge` el 2026-10-23, después de cerrar la Fase 6.
+
+- [X] T029 En `app/api/tts/route.ts`, garantizar la pronunciación en inglés también para textos de más de
+  5 palabras (por ejemplo, usando `eleven_turbo_v2_5` con `language_code: "en"` para todo texto, tras
+  comparar el sonido de la voz en las lecciones) o, si se decide mantener el modelo actual para oraciones
+  largas, acotar FR-015 en `spec.md` con `/speckit-clarify` para que diga que la garantía cubre palabras y
+  frases de hasta 5 palabras, per FR-015 (partial)
