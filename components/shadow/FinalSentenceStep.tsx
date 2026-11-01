@@ -62,12 +62,19 @@ export default function FinalSentenceStep({ sentence, onFinished }: Props) {
       }
       setTranscript(heard.trim())
     }
+    // With no microphone access there is nothing to review: go back to idle
+    // instead of showing an empty "What we heard" box (FR-013).
+    let blocked = false
     recognition.onerror = (event: SpeechRecognitionType) => {
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        blocked = true
         setMicError('Microphone access was denied. Please allow microphone access and try again.')
+      } else if (event.error === 'audio-capture') {
+        blocked = true
+        setMicError('No microphone was found. Connect one and try again.')
       }
     }
-    recognition.onend = () => setRecordState('done')
+    recognition.onend = () => setRecordState(blocked ? 'idle' : 'done')
 
     recognitionRef.current = recognition
     setTranscript('')

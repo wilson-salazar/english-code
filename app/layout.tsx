@@ -38,7 +38,9 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      {/* Browser extensions (e.g. ColorZilla) add attributes to <body> before React hydrates;
+          this silences only that harmless mismatch on <body> itself, not on its children. */}
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}
         <FloatingVocabulary />
       </body>

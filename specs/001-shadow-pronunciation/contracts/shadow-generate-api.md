@@ -20,6 +20,7 @@ temas de conversación.
 |---|---|---|---|
 | `level` | string | sí | Código de nivel CEFR del estudiante (A2–C1), mismo valor que ya usa `/api/talk` |
 | `recentSentences` | string[] | no | Oraciones/temas usados recientemente por este estudiante, para no repetir (equivalente a `previousTopics` en Talk with AI) |
+| `previousTopic` | string | no | `topic_category` del ejercicio inmediatamente anterior (SC-002). Se le indica al modelo y el servidor rechaza, con reintento, una respuesta con el mismo tema |
 
 ## Respuesta — 200 OK
 
@@ -45,4 +46,5 @@ oración falla o tarda demasiado?").
 ## Garantías
 
 - La oración devuelta nunca coincide textualmente con ninguna de `recentSentences` (FR-001, SC-002).
+- Si se envía `previousTopic`, el `topic_category` devuelto nunca coincide con él (SC-002).
 - La ruta no acepta ni expone `ANTHROPIC_API_KEY` en el cuerpo de la solicitud/respuesta.

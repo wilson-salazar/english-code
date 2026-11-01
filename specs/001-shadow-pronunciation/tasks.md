@@ -235,24 +235,36 @@ Task: "Crear el helper de comparación de palabras en lib/shadow.ts"
 **Propósito**: cerrar las brechas entre la spec/plan y el código actual, detectadas por
 `/speckit-converge` el 2026-10-22. Ordenadas de mayor a menor severidad.
 
-- [ ] T023 En `components/shadow/WordRepeatStep.tsx`, reproducir de nuevo la palabra en voz alta de forma
+- [X] T023 En `components/shadow/WordRepeatStep.tsx`, reproducir de nuevo la palabra en voz alta de forma
   automática tras cada intento rechazado, antes de volver a pedir la repetición, per FR-007 y US1/AC3
   (partial)
-- [ ] T024 Enviar a `/api/shadow/generate` el tema del ejercicio anterior y, al abrir la sesión, las
+- [X] T024 Enviar a `/api/shadow/generate` el tema del ejercicio anterior y, al abrir la sesión, las
   últimas oraciones y temas de `shadow_sessions`; rechazar en `app/api/shadow/generate/route.ts` (con
   reintento) un tema igual al inmediatamente anterior, per SC-002, US2/AC1 y FR-001 (partial)
-- [ ] T025 En `components/shadow/WordRepeatStep.tsx` y `components/shadow/FinalSentenceStep.tsx`,
+- [X] T025 En `components/shadow/WordRepeatStep.tsx` y `components/shadow/FinalSentenceStep.tsx`,
   distinguir los errores de reconocimiento `not-allowed` (permiso denegado) y `audio-capture` (sin
   micrófono) con un mensaje claro cada uno, y no contar como intento fallido el que termina por
   cualquiera de ellos, per FR-013 (partial)
-- [ ] T026 En `components/shadow/ShadowSession.tsx`, capturar los fallos de red y de lectura de la respuesta
+- [X] T026 En `components/shadow/ShadowSession.tsx`, capturar los fallos de red y de lectura de la respuesta
   en `loadExercise` y agregar un tiempo máximo de espera a la llamada a `/api/shadow/generate`, mostrando la
   pantalla de error con reintento en lugar de quedarse en "Preparing a new sentence...", per el caso límite
   "la generación falla o tarda demasiado" y T020 (partial)
-- [ ] T027 En `finishExercise` de `components/shadow/ShadowSession.tsx`, informar al estudiante cuando falle
+- [X] T027 En `finishExercise` de `components/shadow/ShadowSession.tsx`, informar al estudiante cuando falle
   el `insert` en `shadow_sessions` y ofrecer reintentar, para que el ejercicio no quede sin registrar en
   silencio, per FR-014 (partial)
-- [ ] T028 Revisar y justificar los elementos que la spec no describe: el botón "Listen again" de
+- [X] T028 Revisar y justificar los elementos que la spec no describe: el botón "Listen again" de
   `ShadowSession.tsx`, `WordRepeatStep.tsx` y `FinalSentenceStep.tsx`, y el contador "N done this session"
   de `ShadowSession.tsx`; registrarlos en `spec.md` con `/speckit-clarify` o retirarlos, per spec.md
   (unrequested)
+
+---
+
+## Fase 7: Convergence (convergencia con la spec)
+
+**Propósito**: brecha detectada por `/speckit-converge` el 2026-10-23, después de cerrar la Fase 6.
+
+- [X] T029 En `app/api/tts/route.ts`, garantizar la pronunciación en inglés también para textos de más de
+  5 palabras (por ejemplo, usando `eleven_turbo_v2_5` con `language_code: "en"` para todo texto, tras
+  comparar el sonido de la voz en las lecciones) o, si se decide mantener el modelo actual para oraciones
+  largas, acotar FR-015 en `spec.md` con `/speckit-clarify` para que diga que la garantía cubre palabras y
+  frases de hasta 5 palabras, per FR-015 (partial)

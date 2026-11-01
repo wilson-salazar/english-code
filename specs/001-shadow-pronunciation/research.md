@@ -3,8 +3,10 @@
 ## 1. Cómo determinar si una palabra fue "pronunciada correctamente"
 
 **Decisión**: Usar el reconocimiento de voz del navegador (Web Speech API, ya usado en `SpeakingPhase` y
-Talk with AI) en una instancia corta por palabra; normalizar (minúsculas, sin puntuación ni acentos) tanto
-la palabra reconocida como la palabra objetivo, y compararlas por coincidencia exacta tras normalizar —
+Talk with AI) en una instancia corta por palabra; normalizar (minúsculas, sin puntuación ni acentos, y con
+los números escritos en dígitos pasados a palabras en inglés, porque el reconocimiento escribe "20" cuando
+el estudiante dijo "twenty") tanto la palabra reconocida como la palabra objetivo, y compararlas por
+coincidencia exacta tras normalizar —
 el mismo criterio de comparación simple ya usado en `PracticePhase.tsx` (`normalize(answer) ===
 normalize(correctAnswer)`).
 
@@ -73,3 +75,11 @@ ya validado en producción (variedad de temas, nivel acorde al estudiante, sin r
 arbitrarios — hoy se usa para reproducir palabras sueltas de vocabulario y títulos de tema en Talk with AI.
 Shadowing reutiliza esa misma ruta tanto para cada palabra como para la oración completa, sin ningún cambio
 en `/api/tts` ni en los IDs de voz.
+
+**Actualización (FR-015, T029, 2026-11-01)**: `/api/tts` sí cambió después de esta confirmación, para corregir
+palabras sueltas que sonaban en español: los textos de hasta 5 palabras usan `eleven_turbo_v2_5` con
+`language_code: "en"`, y los más largos siguen con `eleven_multilingual_v2`, que no acepta ese parámetro. El
+usuario comparó ambos modelos con un mismo texto de dos oraciones, con las dos voces, y prefirió mantener
+`eleven_multilingual_v2` en las oraciones: `eleven_turbo_v2_5` le sonó demasiado rápido, aunque las duraciones
+medidas fueron parecidas (voz femenina: 11,5 s frente a 11,4 s; voz masculina: 10,9 s frente a 10,0 s). Por
+eso FR-015 se acotó a textos de hasta 5 palabras, sin cambios de código.

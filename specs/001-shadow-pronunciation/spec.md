@@ -8,6 +8,18 @@
 
 **Entrada**: Descripción del usuario: "Nuevo módulo 'Shadow' para entrenar la pronunciación mediante shadowing: la IA presenta y pronuncia una oración corta completa sobre un tema aleatorio (igual variedad de temas que Talk with AI), el estudiante inicia la práctica con un botón, la IA dice una palabra a la vez y el estudiante la repite viendo en un cuadro de texto lo que la IA dijo y lo que el sistema entendió que él dijo; si la pronunciación de una palabra está mal la IA la repite hasta que el estudiante acierte, y solo entonces avanza a la siguiente palabra; al terminar todas las palabras, el estudiante pronuncia la oración completa de corrido (igual que ya funciona en los demás módulos de habla) y el ejercicio termina ahí."
 
+## Clarifications (aclaraciones)
+
+### Session 2026-10-23
+
+- Q: ¿En qué idioma debe pronunciar la voz las palabras y la oración completa? → A: Siempre en inglés; se corrigió un defecto en el que palabras sueltas (por ejemplo "tardigrades") sonaban a veces en español, y el estudiante necesita oír siempre la pronunciación correcta para interiorizarla.
+- Q: ¿Puede el estudiante volver a escuchar el audio en cada paso? → A: Sí, cuantas veces quiera, con un botón "Listen again" visible y con un área de toque cómoda (mínimo 44 px), también en móvil.
+- Q: ¿Se muestra el avance de la sesión en el encabezado del módulo? → A: Sí, el contador "N done this session" con los ejercicios completados en la visita actual; es un extra que se mantiene y se documenta.
+
+### Session 2026-11-01
+
+- Q: ¿La garantía de pronunciar en inglés debe cubrir también las oraciones de más de 5 palabras, aunque eso cambie la voz en toda la aplicación? → A: No. La garantía cubre palabras y frases de hasta 5 palabras. Tras escuchar las dos opciones, el usuario prefirió mantener la voz actual en las oraciones porque la alternativa forzada a inglés le sonó demasiado rápida. Esto acota la respuesta de la sesión 2026-10-23.
+
 ## Escenarios de usuario y pruebas *(obligatorio)*
 
 ### Historia de usuario 1 - Completar un ejercicio de shadowing (Prioridad: P1)
@@ -84,6 +96,9 @@ Como estudiante, quiero ver en un cuadro de texto tanto la palabra que dijo la I
 - **FR-012**: El estudiante DEBE poder iniciar un nuevo ejercicio de Shadowing con una oración y un tema diferentes justo después de terminar el anterior, sin límite de ejercicios por sesión.
 - **FR-013**: El sistema DEBE solicitar permiso de micrófono al estudiante antes de iniciar la grabación, y comunicarle con claridad si el permiso fue denegado o el micrófono no está disponible.
 - **FR-014**: El sistema DEBE registrar cada ejercicio de Shadowing que el estudiante complete (oración practicada, tema y fecha), protegido de forma que cada estudiante solo pueda ver su propio historial, de modo que se refleje en sus estadísticas de progreso del dashboard.
+- **FR-015**: El sistema DEBE forzar la pronunciación en inglés en toda reproducción en voz alta de palabras sueltas y frases de hasta 5 palabras, para que el estudiante escuche la pronunciación correcta. Las oraciones de más de 5 palabras conservan la voz que detecta el idioma a partir del texto: se espera que suenen en inglés, pero no se fuerza. Si el uso real muestra una oración pronunciada en otro idioma, este límite se reabre con `/speckit-clarify`.
+- **FR-016**: En cada paso (oración inicial, palabra por palabra y oración final) el estudiante DEBE poder volver a escuchar la palabra o la oración cuantas veces quiera mediante un botón "Listen again" visible, con un área de toque de al menos 44 px de alto, también en móvil.
+- **FR-017**: El encabezado del módulo DEBE mostrar cuántos ejercicios ha completado el estudiante en la sesión actual ("N done this session"); este contador no se conserva entre visitas, a diferencia del historial permanente de FR-014.
 
 ### Entidades clave
 
