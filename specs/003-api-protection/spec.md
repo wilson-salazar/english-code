@@ -181,7 +181,7 @@ Como dueño, quiero que los errores de los proveedores se manejen de forma contr
 - El dueño es el único usuario (confirmado por él), y la base local tiene exactamente 1 cuenta, comprobado el 2026-11-01.
 - La sesión es la que ya usa la aplicación para iniciar sesión; no se agrega un método de autenticación ni un proveedor nuevo.
 - Las reglas de protección de datos por fila no cambian: están activas en las 16 tablas, comprobado el 2026-11-01. Esta funcionalidad protege las funciones que gastan créditos, no el acceso a los datos.
-- Referencias para fijar los límites en el plan, medidas el 2026-11-01: la fase más larga de una lección ocupa 1500 caracteres y la de un capítulo 3333, ambas contando toda su estructura; el mensaje guardado más largo de la IA tiene 802 caracteres; Talk with AI envía como máximo 20 mensajes de hasta 5000 caracteres cada uno.
+- Referencias para fijar los límites en el plan, medidas el 2026-11-01: la fase más larga de una lección ocupa 1500 caracteres y la de un capítulo 3333, ambas contando toda su estructura; el mensaje guardado más largo de la IA tiene 723 caracteres y el del estudiante 802; Talk with AI envía como máximo 20 mensajes de hasta 5000 caracteres cada uno.
 - Los avisos que indican que falta configurar una llave se pueden conservar, porque solo los verá quien ya tenga sesión.
 - Mientras no exista la red privada de la etapa siguiente, abrir la aplicación desde otro dispositivo deja de funcionar. El dueño lo aceptó al priorizar esta funcionalidad.
 - La protección de las funciones es por sesión, y no se agregan límites de frecuencia: con un único usuario y sin registro, solo el dueño tiene sesión. Se reabre si el uso real lo pide.
