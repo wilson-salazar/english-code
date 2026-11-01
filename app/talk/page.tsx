@@ -94,6 +94,9 @@ export default function TalkWithAiPage() {
   const feedbackRef = useRef<HTMLElement | null>(null)
   const initializedRef = useRef(false)
   const sendingRef = useRef(false)
+  // True while the learner is reading the bottom of the chat; false once they scroll up,
+  // so new text never pulls the page away from something they are rereading.
+  const stickToBottomRef = useRef(true)
 
   const speakAssistant = useCallback(async (messageId: string, text: string, animateText = true) => {
     audioRef.current?.pause()
@@ -335,6 +338,26 @@ export default function TalkWithAiPage() {
   }, [isOpenMode, loadActiveTerms, profileId])
 
   useEffect(() => {
+    function updateStickToBottom() {
+      const distanceFromBottom = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight)
+      stickToBottomRef.current = distanceFromBottom < 160
+    }
+    window.addEventListener('scroll', updateStickToBottom, { passive: true })
+    return () => window.removeEventListener('scroll', updateStickToBottom)
+  }, [])
+
+  // Follow the conversation as it grows: new messages, the AI text being typed out while it
+  // speaks, the "thinking" indicator and errors. The bottom padding of <main> keeps the last
+  // line above the fixed answer bar. The feedback card has its own scroll effect below.
+  useEffect(() => {
+    if (feedback || !stickToBottomRef.current) return
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: speakingMessageId ? 'auto' : 'smooth',
+    })
+  }, [messages, visibleAssistantText, speakingMessageId, sending, loadingTopic, error, feedback])
+
+  useEffect(() => {
     if (!feedback) return
     const timer = window.setTimeout(() => feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150)
     return () => window.clearTimeout(timer)
@@ -403,6 +426,7 @@ export default function TalkWithAiPage() {
     if (!cleanTranscript || sendingRef.current || pendingHistory) return
 
     sendingRef.current = true
+    stickToBottomRef.current = true
     setSending(true)
     setError('')
     recognitionRef.current?.stop()
@@ -846,7 +870,7 @@ export default function TalkWithAiPage() {
                 value={transcript}
                 onChange={event => { setTranscript(event.target.value); setRecordingState('review') }}
                 disabled={loadingTopic || sending || pendingHistory !== null}
-                rows={2}
+                rows={3}
                 placeholder={recordingState === 'recording'
                   ? 'Your words will appear here as you speak...'
                   : isOpenMode && messages.length === 0
