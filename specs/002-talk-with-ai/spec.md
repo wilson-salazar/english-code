@@ -8,6 +8,14 @@
 
 **Entrada**: Descripción del usuario: "Talk with AI — especificación retroactiva de un módulo que ya existe y va a recibir muchos cambios: conversación guiada en inglés con una IA para que el estudiante practique hablar y escribir, con dos modos (vocabulario propio y conversación abierta), y los cambios recientes de desplazamiento automático y cuadro de respuesta un 30% más alto."
 
+## Clarifications (aclaraciones)
+
+### Session 2026-11-01
+
+- Q: En el modo "Open conversation", ¿debe la IA terminar siempre cada turno con una pregunta, solo cuando sea útil, o nunca? → A: Solo cuando sea útil. La pregunta final es obligatoria en el modo "Talk with AI" y opcional en el modo abierto, donde el estudiante lidera el tema.
+- Q: Si el estudiante deniega el permiso del micrófono o su equipo no tiene micrófono, ¿qué debe mostrar el módulo? → A: Dos mensajes claros, uno para "permiso denegado" y otro para "micrófono no encontrado", y el estudiante puede seguir escribiendo su respuesta, igual que en Shadowing.
+- Q: En una conversación abierta larga, ¿hasta dónde debe "acordarse" la IA de lo que se dijo antes? → A: Se mantiene el límite actual de los últimos 20 mensajes y queda documentado como límite conocido; no se amplía ni se resume lo antiguo.
+
 ## Escenarios de usuario y pruebas *(obligatorio)*
 
 ### Historia de usuario 1 - Practicar con mi vocabulario en una conversación guiada (Prioridad: P1)
@@ -61,6 +69,7 @@ Como estudiante, quiero contestar con mi voz o escribiendo, revisar y corregir l
 2. **Dado** que hay texto en el cuadro, **Cuando** lo edita, lo borra o vuelve a grabar, **Entonces** el cuadro refleja el cambio y solo se envía lo que quedó al pulsar enviar.
 3. **Dado** que el navegador no admite reconocimiento de voz, **Cuando** el estudiante intenta grabar, **Entonces** se le avisa que la voz no está disponible y puede escribir su respuesta.
 4. **Dado** que el estudiante quiere escribir una respuesta larga, **Cuando** usa el cuadro de respuesta, **Entonces** ve 3 líneas de texto a la vez (un 30% más de altura que antes, que eran 2) sin tener que desplazarse dentro del cuadro para las primeras líneas.
+5. **Dado** que el estudiante intenta grabar su voz, **Cuando** el permiso del micrófono está denegado o el equipo no tiene micrófono, **Entonces** ve un mensaje claro y distinto para cada caso (permitir el micrófono, o conectar uno) y puede seguir escribiendo su respuesta.
 
 ---
 
@@ -87,9 +96,10 @@ Como estudiante, quiero oír cada mensaje de la IA mientras lo leo, poder repeti
 
 - ¿Qué pasa si el estudiante no tiene palabras guardadas en el modo "Talk with AI"? La conversación sigue sobre un tema útil y se le invita a agregar palabras más adelante.
 - ¿Qué pasa si el navegador no soporta reconocimiento de voz? Se le avisa y puede escribir.
-- ¿Qué pasa si el estudiante deniega el permiso del micrófono o no hay micrófono? Hoy no se muestra un mensaje específico (ver Supuestos, brecha conocida).
+- ¿Qué pasa si el estudiante deniega el permiso del micrófono o no hay micrófono? Se le muestra un mensaje distinto para cada caso y puede seguir escribiendo (FR-020; pendiente de implementar, ver Supuestos).
 - ¿Qué pasa si la IA falla al responder? La respuesta del estudiante queda guardada y puede reintentar la respuesta de la IA sin volver a escribirla.
 - ¿Qué pasa si falla guardar la respuesta del estudiante o generar la retroalimentación? Se muestra un mensaje de error claro y puede intentarlo de nuevo.
+- ¿Qué pasa si una conversación se alarga mucho, sobre todo en el modo abierto, que no tiene tope de respuestas? La IA solo recuerda los últimos 20 mensajes (unas 10 idas y vueltas); lo anterior ya no lo ve y puede repetir una pregunta o perder un detalle.
 - ¿Qué pasa si el estudiante escribe una respuesta muy larga? Se admiten respuestas de hasta 5000 caracteres; más allá de eso no se puede guardar.
 - ¿Qué pasa si el audio no está disponible o falla? El texto del mensaje se escribe igualmente en pantalla, sin sonido, y la conversación continúa.
 - ¿Qué pasa si el estudiante recarga la página o vuelve más tarde? Cada visita empieza un tema diferente; lo conversado antes queda guardado en su historial pero no se retoma.
@@ -109,7 +119,7 @@ Como estudiante, quiero oír cada mensaje de la IA mientras lo leo, poder repeti
 - **FR-008**: En el modo "Open conversation", el estudiante DEBE iniciar la conversación con cualquier pregunta o tema; el sistema NO DEBE usar ni mencionar el vocabulario guardado y NO DEBE imponer un máximo fijo de respuestas.
 - **FR-009**: La retroalimentación DEBE incluir un resumen, lo que el estudiante hizo bien, qué mejorar y un siguiente paso, acompañada de un mensaje de cierre de la IA que se guarda en la conversación.
 - **FR-010**: Al terminar la conversación, el sistema DEBE ofrecer iniciar un tema nuevo (en el modo abierto, una conversación nueva); el estudiante también DEBE poder pedirlo en cualquier momento, salvo mientras la IA está pensando o preparando el tema.
-- **FR-011**: La IA DEBE hablar solo en inglés, con una dificultad acorde al nivel CEFR del estudiante; cada turno DEBE ser conversacional, de unas 45 a 90 palabras, y terminar con una pregunta; DEBE dar contexto que haga comprensible el vocabulario desconocido sin traducir todo el mensaje.
+- **FR-011**: La IA DEBE hablar solo en inglés, con una dificultad acorde al nivel CEFR del estudiante; cada turno DEBE ser conversacional, de unas 45 a 90 palabras; en el modo "Talk with AI" cada turno DEBE terminar con una pregunta directa, y en el modo "Open conversation" la pregunta es opcional y la IA solo pregunta cuando resulte útil para la conversación; DEBE dar contexto que haga comprensible el vocabulario desconocido sin traducir todo el mensaje.
 - **FR-012**: El estudiante DEBE poder responder hablando o escribiendo, revisar y corregir el texto antes de enviarlo, borrarlo o volver a grabar; el sistema solo DEBE enviar lo que haya quedado en el cuadro.
 - **FR-013**: Si el navegador no admite reconocimiento de voz, el sistema DEBE avisarlo y permitir al estudiante escribir su respuesta.
 - **FR-014**: Los mensajes de la IA DEBEN aparecer como texto mientras suenan en voz alta; el estudiante DEBE poder saltar el audio, volver a escuchar cualquier mensaje de la IA y escuchar el título del tema y cada palabra guardada.
@@ -118,6 +128,7 @@ Como estudiante, quiero oír cada mensaje de la IA mientras lo leo, poder repeti
 - **FR-017**: Cuando el contenido de la conversación crece (mensaje nuevo, texto de la IA escribiéndose mientras suena, indicador de que la IA está pensando o un error), la pantalla DEBE bajar sola para mantener visible lo último, sin quedar tapado por la barra de respuesta, siempre que el estudiante esté leyendo el final de la conversación.
 - **FR-018**: El desplazamiento automático NO DEBE sacar al estudiante de lo que está releyendo si él mismo subió; DEBE volver a seguir el final cuando el estudiante envía un mensaje o baja de nuevo hasta el final. La tarjeta de retroalimentación final DEBE conservar su propio desplazamiento (centrarse en pantalla).
 - **FR-019**: El cuadro donde el estudiante escribe o ve su respuesta DEBE mostrar 3 líneas de texto a la vez, un 30% más de altura que la versión anterior (2 líneas), para facilitar respuestas largas.
+- **FR-020**: Si el estudiante intenta grabar y el permiso del micrófono está denegado, el sistema DEBE mostrar un mensaje claro que le pida permitir el micrófono; si el equipo no tiene micrófono, DEBE mostrar un mensaje distinto que le pida conectar uno; en ambos casos el estudiante DEBE poder seguir escribiendo su respuesta. Mismo comportamiento que FR-013 del módulo Shadowing.
 
 ### Entidades clave
 
@@ -146,7 +157,8 @@ Como estudiante, quiero oír cada mensaje de la IA mientras lo leo, poder repeti
 - En el modo "Open conversation", la conversación queda registrada al enviar el primer mensaje y lleva un título genérico con la fecha, porque el tema lo pone el estudiante.
 - Cada visita inicia un tema diferente; una conversación interrumpida no se retoma, aunque queda guardada en el historial.
 - Las respuestas del estudiante admiten hasta 5000 caracteres.
+- **Límite conocido**: la IA solo recuerda los últimos 20 mensajes de la conversación. Es una decisión aceptada, no una brecha; si el uso real muestra que estorba, se reabre con `/speckit-clarify`.
 - La retroalimentación se muestra al terminar; lo que queda guardado de ella en el historial es el mensaje de cierre de la IA.
-- **Brecha conocida (no está resuelta hoy)**: si el estudiante deniega el permiso del micrófono o no hay micrófono, el módulo no muestra un mensaje específico, a diferencia del módulo Shadowing (FR-013 de su spec). Queda como mejora futura.
+- **Pendiente de implementar**: FR-020 (mensajes para permiso de micrófono denegado y micrófono no encontrado) está decidido en esta spec, pero el módulo todavía no lo cumple: hoy no muestra un mensaje específico. Es una brecha que `/speckit-tasks` y `/speckit-converge` deben recoger.
 - El módulo requiere conexión a internet para la IA, la voz y el reconocimiento de voz del navegador, igual que el resto de módulos de habla.
 - Las palabras guardadas se administran desde el widget de vocabulario personal de la aplicación; este módulo solo las usa y permite marcarlas como aprendidas.
