@@ -4,7 +4,7 @@ Pasos para comprobar manualmente que el módulo cumple la spec ([spec.md](./spec
 
 **Estado de la verificación al 2026-11-01**:
 - Los escenarios 4 y 5 (cambios recientes) y los pasos 4 y 5 del escenario 3 (FR-020, mensajes de micrófono) ya los **verificó el usuario en la aplicación corriendo** (T022, T023 y T027).
-- El escenario 8 (correcciones de la convergencia, T032 a T037) está **pendiente de ejecutar** (T038); el Principio VI lo exige para dar la funcionalidad por terminada.
+- El escenario 8 (correcciones de la convergencia, T032 a T037) también lo **verificó el usuario en la aplicación corriendo** (T038).
 
 ## Prerrequisitos
 

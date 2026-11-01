@@ -43,7 +43,7 @@ Módulo de conversación guiada en inglés con una IA, con dos modos servidos po
 | III. Seguridad de los datos y RLS (NO NEGOCIABLE) | PASS | Las tres tablas tienen RLS activa y una política limitada al dueño, verificadas contra la base local (`pg_policies`); llegaron en migraciones incrementales (`20260720030000`, `20260720040000`). Este plan no agrega ni modifica datos. |
 | IV. Local-first y privado | PASS | Sin dependencia de nube propia; solo los proveedores de IA y voz que ya usa el resto de la app. |
 | V. Contratos de componentes estables | N/A | Talk no es una fase de escenario ni de capítulo: no usa el contrato `onComplete()` de `components/phases/*`. |
-| VI. Verificado antes de terminar | ⚠ PENDIENTE | `tsc` y ESLint pasan, y el usuario verificó en la aplicación corriendo los mensajes de micrófono, el cuadro de 3 filas y el desplazamiento automático (T022, T023 y T027; escenarios 3, 4 y 5 de [quickstart.md](./quickstart.md)). Las correcciones de la convergencia (T032 a T037) **no se han ejercitado en la aplicación corriendo**; se resuelve con T038 (escenario 8), y hasta entonces la funcionalidad no debe darse por terminada. |
+| VI. Verificado antes de terminar | PASS | `tsc`, ESLint y `npm run build` pasan, y el usuario verificó en la aplicación corriendo los mensajes de micrófono, el cuadro de 3 filas, el desplazamiento automático y las correcciones de la convergencia (T022, T023, T027 y T038; escenarios 3, 4, 5 y 8 de [quickstart.md](./quickstart.md)). |
 
 No hay violaciones de diseño que justificar.
 

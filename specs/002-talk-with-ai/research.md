@@ -82,4 +82,4 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 
 ## 11. Verificación
 
-**Decisión**: sin pruebas automatizadas (no hay suite); verificación manual con `quickstart.md`, `npx tsc --noEmit` y ESLint, según el Principio VI. El usuario ya verificó en la aplicación corriendo FR-020 (sección 6, T022) y los cambios de las secciones 8 y 9 (T023 y T027). Las correcciones de la convergencia (T032 a T037) siguen **pendientes de verificar** (T038).
+**Decisión**: sin pruebas automatizadas (no hay suite); verificación manual con `quickstart.md`, `npx tsc --noEmit` y ESLint, según el Principio VI. El usuario ya verificó en la aplicación corriendo FR-020 (sección 6, T022), los cambios de las secciones 8 y 9 (T023 y T027) y las correcciones de la convergencia (T032 a T037, verificadas en T038).
