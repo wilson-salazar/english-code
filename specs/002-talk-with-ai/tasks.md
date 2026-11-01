@@ -115,7 +115,7 @@ Next.js 16 App Router, un solo proyecto; rutas relativas a la raíz del reposito
 - [X] T028 Fallos y reintento en `requestAssistantResponse`, `retryAssistantResponse` y `requestFeedback` de `app/talk/page.tsx`: si la IA falla o no se puede guardar su respuesta, se conserva la respuesta del estudiante en `pendingHistory` y aparece "Retry AI response"; si falla la retroalimentación o guardar un mensaje se muestra un error claro y se puede volver a intentar (FR-015).
 - [X] T029 Persistencia y privacidad: cada conversación y cada mensaje se insertan por estudiante (`startConversation`, `sendMessage`, `requestAssistantResponse`, `requestFeedback` de `app/talk/page.tsx`) y las tres tablas tienen RLS activa con su política de dueño, comprobada en `pg_policies` (FR-016, SC-008).
 - [X] T030 Tras T021, ejecutar `npx tsc --noEmit` y `npx eslint app/talk` sin errores en `app/talk/page.tsx` (Principio VI).
-- [ ] T031 [P] Corregir la nota al pie de `specs/002-talk-with-ai/checklists/requirements.md`, que todavía dice que el micrófono es una "mejora futura, no un requisito pendiente" y contradice a FR-020 (solo documentación; el comando `/speckit-clarify` no puede editarla).
+- [X] T031 [P] Corregir la nota al pie de `specs/002-talk-with-ai/checklists/requirements.md`, que todavía dice que el micrófono es una "mejora futura, no un requisito pendiente" y contradice a FR-020 (solo documentación; el comando `/speckit-clarify` no puede editarla).
 
 ---
 

@@ -32,5 +32,5 @@
 ## Notas
 
 - Es una especificación retroactiva: describe el comportamiento actual verificado contra el código y registra los dos cambios más recientes (FR-017, FR-018 y FR-019).
-- Brecha conocida y documentada en Supuestos: no hay mensaje específico cuando se deniega el permiso del micrófono o no hay micrófono. Es una mejora futura, no un requisito pendiente de esta especificación.
+- La antigua brecha del micrófono (sin mensaje específico si se deniega el permiso o no hay micrófono) pasó a ser el requisito FR-020 en la clarificación del 2026-11-01. Está implementado (T021) y pendiente de verificar en pantalla (T022).
 - Los requisitos de SC-001, SC-002 y SC-004 se verifican a mano (no hay pruebas automatizadas, Principio VI de la constitución).
