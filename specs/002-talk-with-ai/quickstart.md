@@ -4,7 +4,7 @@ Pasos para comprobar manualmente que el módulo cumple la spec ([spec.md](./spec
 
 **Estado de la verificación al 2026-11-01**:
 - Los escenarios 4 y 5 (cambios recientes) están **pendientes de ejecutar en la aplicación corriendo**; el Principio VI los exige para dar la funcionalidad por terminada.
-- El paso 4 del escenario 3 (FR-020, mensajes de micrófono) **fallará hasta que se implemente**: es un requisito decidido, no una brecha aceptada.
+- Los pasos 4 y 5 del escenario 3 (FR-020, mensajes de micrófono) están implementados y **pendientes de ejecutar** también.
 
 ## Prerrequisitos
 
@@ -37,8 +37,8 @@ Pasos para comprobar manualmente que el módulo cumple la spec ([spec.md](./spec
 1. Pulsar "Start talking", decir una frase y confirmar que el texto aparece mientras se habla (FR-012).
 2. Editar el texto, usar "Clear" o "Record again" y confirmar que solo se envía lo que quedó en el cuadro.
 3. En un navegador sin voz (por ejemplo Firefox de escritorio), confirmar que se avisa y se puede escribir (FR-013).
-4. **FR-020 (pendiente de implementar; D1)**: en la configuración del navegador denegar el permiso del micrófono para el sitio y pulsar "Start talking". Esperado: un mensaje claro que pide permitir el micrófono, sin quedarse en "grabando" y con el cuadro de respuesta disponible para escribir. **Hoy este paso falla** (no aparece ningún mensaje).
-5. **FR-020, segundo caso**: sin micrófono conectado (o con la entrada de audio desactivada), pulsar "Start talking". Esperado: un mensaje **distinto** que pide conectar un micrófono, y se puede seguir escribiendo. **Hoy este paso también falla.**
+4. **FR-020 (D1)**: escribir algo en el cuadro, denegar en la configuración del navegador el permiso del micrófono para el sitio y pulsar "Start talking". Esperado: un mensaje claro que pide permitir el micrófono, sin quedarse en "grabando", con lo escrito intacto y el cuadro disponible.
+5. **FR-020, segundo caso**: sin micrófono conectado (o con la entrada de audio desactivada), pulsar "Start talking". Esperado: un mensaje **distinto** que pide conectar un micrófono, y se puede seguir escribiendo.
 
 ## Escenario 4 — Cuadro de respuesta más alto (cambio reciente, FR-019 y SC-007)
 

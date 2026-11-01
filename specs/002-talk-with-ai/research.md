@@ -1,6 +1,6 @@
 # Investigación — Fase 0: Talk with AI (decisiones del código actual)
 
-*Actualizado el 2026-11-01 tras `/speckit-clarify`: D2 y D5 resueltas, D1 convertida en el requisito FR-020 (pendiente de implementar).*
+*Actualizado el 2026-11-01 tras `/speckit-clarify`: D2 y D5 resueltas, D1 convertida en el requisito FR-020, implementado después en T021.*
 
 Documento retroactivo: cada decisión describe lo que el código hace hoy, verificado en los archivos citados. En "Alternativas consideradas" **no consta qué se evaluó cuando se construyó el módulo** (no hay registro); lo que aparece son alternativas razonables para cuando el módulo cambie, marcadas como tales.
 
@@ -44,14 +44,14 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 
 ## 6. Entrada del estudiante: voz continua con texto editable
 
-**Decisión**: reconocimiento de voz del navegador en modo continuo con resultados parciales, idioma `en-US`; el texto va a un cuadro editable y el estudiante revisa antes de enviar. Si el navegador no lo soporta, se avisa y se escribe. Hoy no hay manejo de errores de reconocimiento (permiso denegado, sin micrófono): es D1, el requisito FR-020 decidido y aún sin implementar.
+**Decisión**: reconocimiento de voz del navegador en modo continuo con resultados parciales, idioma `en-US`; el texto va a un cuadro editable y el estudiante revisa antes de enviar. Si el navegador no lo soporta, se avisa y se escribe. Los errores de reconocimiento (permiso denegado, sin micrófono) se manejan según FR-020 (D1, T021).
 
 **Justificación**: mismo enfoque que `SpeakingPhase` y Shadowing; no requiere proveedor nuevo.
 
-**Decisión de diseño para FR-020 (pendiente de implementar)**:
+**Decisión de diseño para FR-020 (implementada en T021, pendiente de verificar en pantalla)**:
 - Escuchar el evento de error del reconocimiento y distinguir dos casos: permiso denegado (`not-allowed` y `service-not-allowed`) y micrófono no encontrado (`audio-capture`).
 - Mostrar el mensaje en la zona de la barra de respuesta donde ya se muestra el aviso de voz no disponible, como alerta accesible. Textos en inglés (la interfaz del estudiante va en inglés) y coherentes con Shadowing: "Microphone access was denied. Please allow microphone access and try again." y "No microphone was found. Connect one and try again."
-- Al ocurrir el error, el estado de grabación vuelve a reposo (no a "revisión") y no se envía nada. El cuadro de respuesta no se deshabilita al grabar, así que el estudiante puede seguir escribiendo sin cambios adicionales.
+- Al ocurrir el error, el estado de grabación vuelve a reposo (no a "revisión") y no se envía nada. Como grabar vacía el cuadro de respuesta, se restaura lo que el estudiante ya había escrito para que no lo pierda; el cuadro no se deshabilita, así que puede seguir escribiendo.
 - Es el mismo enfoque que T025 de Shadowing, que vive en la rama `001-shadow-implement` y aún no está fusionada: conviene reutilizar el patrón, no inventar otro.
 
 **Alternativas decididas en la clarificación**: un mensaje genérico único (opción B) y no hacer nada (opción C); se eligieron dos mensajes distintos (opción A) porque la acción del estudiante es distinta en cada caso.
@@ -82,4 +82,4 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 
 ## 11. Verificación
 
-**Decisión**: sin pruebas automatizadas (no hay suite); verificación manual con `quickstart.md`, `npx tsc --noEmit` y ESLint, según el Principio VI. Los cambios de la sección 8 y 9 están **pendientes de verificar en la aplicación corriendo**, y FR-020 (sección 6) está **pendiente de implementar**: su escenario del quickstart falla hasta entonces.
+**Decisión**: sin pruebas automatizadas (no hay suite); verificación manual con `quickstart.md`, `npx tsc --noEmit` y ESLint, según el Principio VI. Los cambios de la sección 8 y 9 están **pendientes de verificar en la aplicación corriendo**, igual que FR-020 (sección 6), ya implementado.

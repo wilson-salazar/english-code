@@ -6,7 +6,7 @@
 
 **Naturaleza del plan**: retroactivo. El módulo ya está construido; este plan documenta la arquitectura y las decisiones reales del código actual, verificadas contra los archivos citados, y señala con honestidad dónde el código se aparta de la spec o de la constitución. No propone un rediseño.
 
-**Actualización 2026-11-01** (tras la sesión de `/speckit-clarify`): FR-011 se alineó con el código (la pregunta final es opcional en el modo abierto), se agregó FR-020 (mensajes de micrófono, decidido pero **todavía no implementado**) y el límite de 20 mensajes quedó aceptado. Las discrepancias D2 y D5 se cerraron y D1 pasó de "brecha conocida" a requisito pendiente; el detalle está en la sección de discrepancias.
+**Actualización 2026-11-01** (tras la sesión de `/speckit-clarify`): FR-011 se alineó con el código (la pregunta final es opcional en el modo abierto), se agregó FR-020 (mensajes de micrófono, implementado después en T021 y **pendiente de verificar en pantalla**) y el límite de 20 mensajes quedó aceptado. Las discrepancias D2 y D5 se cerraron y D1 pasó de "brecha conocida" a requisito pendiente; el detalle está en la sección de discrepancias.
 
 ## Resumen
 
@@ -43,9 +43,9 @@ Módulo de conversación guiada en inglés con una IA, con dos modos servidos po
 | III. Seguridad de los datos y RLS (NO NEGOCIABLE) | PASS | Las tres tablas tienen RLS activa y una política limitada al dueño, verificadas contra la base local (`pg_policies`); llegaron en migraciones incrementales (`20260720030000`, `20260720040000`). Este plan no agrega ni modifica datos. |
 | IV. Local-first y privado | PASS | Sin dependencia de nube propia; solo los proveedores de IA y voz que ya usa el resto de la app. |
 | V. Contratos de componentes estables | N/A | Talk no es una fase de escenario ni de capítulo: no usa el contrato `onComplete()` de `components/phases/*`. |
-| VI. Verificado antes de terminar | ⚠ PENDIENTE | Los cambios recientes (desplazamiento automático y cuadro de 3 filas) pasaron `tsc` y ESLint pero **no se han ejercitado en la aplicación corriendo**, que es lo que exige el principio para cambios de interfaz. Se resuelve ejecutando los escenarios 4 y 5 de [quickstart.md](./quickstart.md); hasta entonces la funcionalidad no debe darse por terminada. Cuando se implemente FR-020, su comprobación (escenario 3) entra en la misma barrera. |
+| VI. Verificado antes de terminar | ⚠ PENDIENTE | Los cambios recientes (desplazamiento automático y cuadro de 3 filas) pasaron `tsc` y ESLint pero **no se han ejercitado en la aplicación corriendo**, que es lo que exige el principio para cambios de interfaz. Se resuelve ejecutando los escenarios 4 y 5 de [quickstart.md](./quickstart.md); hasta entonces la funcionalidad no debe darse por terminada. La comprobación de FR-020 (escenario 3, T022) entra en la misma barrera. |
 
-No hay violaciones de diseño que justificar. Tampoco las hay por FR-020: que el módulo aún no lo cumpla es una **brecha de implementación frente a la spec**, no una violación de un principio; se cierra con tareas (`/speckit-tasks`), no con este plan.
+No hay violaciones de diseño que justificar.
 
 **Re-evaluación post-Fase 1**: el diseño documentado (`data-model.md`, `contracts/`, `quickstart.md`) no introduce dependencias nuevas ni datos nuevos. Los seis principios quedan igual que en la evaluación inicial.
 
@@ -55,7 +55,7 @@ No hay violaciones de diseño que justificar. Tampoco las hay por FR-020: que el
 
 | # | Discrepancia | Evidencia | Qué conviene hacer |
 |---|---|---|---|
-| D1 | **FR-020 (mensajes de micrófono) está decidido y el módulo todavía no lo cumple**: si se deniega el permiso o no hay micrófono, no se muestra ningún mensaje. Pasó de "brecha conocida" a requisito pendiente de implementar. | `app/talk/page.tsx`: `startRecording` solo trata el caso de navegador sin voz; el reconocimiento no tiene manejador de errores (`onerror` solo aparece en el audio). El cuadro de respuesta no se deshabilita al grabar, así que escribir ya es posible. | Tarea de implementación (ver decisión en [research.md](./research.md) §6). |
+| D1 | **FR-020 (mensajes de micrófono) está implementado (T021) pero sin verificar en pantalla.** Pasó de "brecha conocida" a requisito y luego a código. | `app/talk/page.tsx`: `startRecording` maneja `not-allowed`, `service-not-allowed` y `audio-capture`, vuelve a reposo y restaura lo que el estudiante había escrito. | Ejecutar T022 ([quickstart.md](./quickstart.md), escenario 3). |
 | D3 | **El `/api/tts` de esta rama aún deja a la IA elegir el idioma** de textos cortos; las palabras sueltas ("escuchar una palabra guardada") a veces se pronuncian en español. El arreglo existe en la rama `001-shadow-implement` y no está fusionado. | `app/api/tts/route.ts` usa `eleven_multilingual_v2` sin `language_code`. | Fusionar esa rama; Talk se beneficia sin cambios propios. |
 | D4 | **"Tema no repetido" se garantiza solo por título** (restricción de unicidad en base de datos), no por significado; dos títulos distintos pueden tratar lo mismo. | Migración: `unique (user_id, topic_key)` sobre el título normalizado. | Aceptable para SC-005 tal como está escrito; revisar si el usuario quiere algo más estricto. |
 

@@ -96,7 +96,7 @@ Como estudiante, quiero oír cada mensaje de la IA mientras lo leo, poder repeti
 
 - ¿Qué pasa si el estudiante no tiene palabras guardadas en el modo "Talk with AI"? La conversación sigue sobre un tema útil y se le invita a agregar palabras más adelante.
 - ¿Qué pasa si el navegador no soporta reconocimiento de voz? Se le avisa y puede escribir.
-- ¿Qué pasa si el estudiante deniega el permiso del micrófono o no hay micrófono? Se le muestra un mensaje distinto para cada caso y puede seguir escribiendo (FR-020; pendiente de implementar, ver Supuestos).
+- ¿Qué pasa si el estudiante deniega el permiso del micrófono o no hay micrófono? Se le muestra un mensaje distinto para cada caso y puede seguir escribiendo (FR-020).
 - ¿Qué pasa si la IA falla al responder? La respuesta del estudiante queda guardada y puede reintentar la respuesta de la IA sin volver a escribirla.
 - ¿Qué pasa si falla guardar la respuesta del estudiante o generar la retroalimentación? Se muestra un mensaje de error claro y puede intentarlo de nuevo.
 - ¿Qué pasa si una conversación se alarga mucho, sobre todo en el modo abierto, que no tiene tope de respuestas? La IA solo recuerda los últimos 20 mensajes (unas 10 idas y vueltas); lo anterior ya no lo ve y puede repetir una pregunta o perder un detalle.
@@ -159,6 +159,6 @@ Como estudiante, quiero oír cada mensaje de la IA mientras lo leo, poder repeti
 - Las respuestas del estudiante admiten hasta 5000 caracteres.
 - **Límite conocido**: la IA solo recuerda los últimos 20 mensajes de la conversación. Es una decisión aceptada, no una brecha; si el uso real muestra que estorba, se reabre con `/speckit-clarify`.
 - La retroalimentación se muestra al terminar; lo que queda guardado de ella en el historial es el mensaje de cierre de la IA.
-- **Pendiente de implementar**: FR-020 (mensajes para permiso de micrófono denegado y micrófono no encontrado) está decidido en esta spec, pero el módulo todavía no lo cumple: hoy no muestra un mensaje específico. Es una brecha que `/speckit-tasks` y `/speckit-converge` deben recoger.
+- **Pendiente de verificar**: FR-020 (mensajes para permiso de micrófono denegado y micrófono no encontrado) ya está implementado, pero falta comprobarlo en la aplicación corriendo (T022 de `tasks.md`).
 - El módulo requiere conexión a internet para la IA, la voz y el reconocimiento de voz del navegador, igual que el resto de módulos de habla.
 - Las palabras guardadas se administran desde el widget de vocabulario personal de la aplicación; este módulo solo las usa y permite marcarlas como aprendidas.
