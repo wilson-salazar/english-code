@@ -21,7 +21,7 @@
 | `mode` | `vocabulary` \| `open` | no | Solo lo usa `respond`. Cualquier valor distinto de `open` se trata como `vocabulary` |
 | `vocabulary` | string[] | no | Palabras guardadas del estudiante. Se recortan, se descartan las vacías y se usan como máximo 10. **Se ignoran en modo `open`** |
 | `previousTopics` | string[] | no | Solo `start`. Se usan los últimos 80 títulos |
-| `history` | `{role, content}[]` | `respond` y `feedback` | Se aceptan solo `assistant` y `user` con contenido; se toman los **últimos 20**, cada uno recortado a 5000 caracteres |
+| `history` | `{role, content}[]` | `respond` y `feedback` | Se aceptan solo `assistant` y `user` con contenido; se toman los **últimos 20** (límite aceptado en la spec), cada uno recortado a 5000 caracteres |
 | `level` | string | no | Nivel CEFR; `B1` por defecto, recortado a 10 caracteres |
 
 ## Acción `start` — abrir una conversación (modo vocabulario)
@@ -52,7 +52,7 @@ Requiere que el último elemento de `history` sea del estudiante; si no, **400**
 ```
 
 - Modo `vocabulary`: continúa el tema y debe terminar con una pregunta directa.
-- Modo `open`: responde a lo que planteó el estudiante, sin cambiar de tema; la pregunta es opcional (ver D2 en `plan.md`).
+- Modo `open`: responde a lo que planteó el estudiante, sin cambiar de tema; la pregunta final es opcional (decidido en la spec, FR-011, clarificación del 2026-11-01).
 - Reintenta una vez si el modelo falla. Si la respuesta no es JSON válido, usa el texto crudo como `message`.
 
 ## Acción `feedback` — retroalimentación y cierre

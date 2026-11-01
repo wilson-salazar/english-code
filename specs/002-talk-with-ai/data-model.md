@@ -80,6 +80,10 @@ RLS activa en las tres tablas, con una política `for all` para el rol `authenti
 
 Verificado contra la base local (`pg_policies` y `relrowsecurity`) el 2026-11-01. Respalda SC-008.
 
+## Cambios de la clarificación del 2026-11-01
+
+Ninguno en los datos: FR-011 (pregunta opcional en el modo abierto), FR-020 (mensajes de micrófono) y el límite de 20 mensajes de la IA no agregan, quitan ni cambian tablas, campos ni restricciones. El límite de 20 mensajes se aplica al construir la solicitud a la IA, no al guardar: todos los mensajes siguen almacenándose.
+
 ## Datos que el módulo no guarda
 
 Nivel CEFR (se lee del perfil en cada visita; `B1` por defecto), lo que el estudiante estaba escribiendo y el estado de una conversación en curso: al recargar se empieza otra.

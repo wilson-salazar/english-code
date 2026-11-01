@@ -1,5 +1,7 @@
 # Investigación — Fase 0: Talk with AI (decisiones del código actual)
 
+*Actualizado el 2026-11-01 tras `/speckit-clarify`: D2 y D5 resueltas, D1 convertida en el requisito FR-020 (pendiente de implementar).*
+
 Documento retroactivo: cada decisión describe lo que el código hace hoy, verificado en los archivos citados. En "Alternativas consideradas" **no consta qué se evaluó cuando se construyó el módulo** (no hay registro); lo que aparece son alternativas razonables para cuando el módulo cambie, marcadas como tales.
 
 ## 1. Dos modos en una sola pantalla
@@ -24,7 +26,7 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 - Modo vocabulario: hasta 10 palabras guardadas no aprendidas (las más antiguas primero); la IA debe usar cada una al menos una vez en sus primeros cuatro turnos. El estudiante responde hasta `MAX_USER_TURNS = 5` veces; al enviar la quinta, la pantalla pide la retroalimentación sola. El botón de terminar aparece desde la segunda respuesta.
 - Modo abierto: no se envía ni se usa vocabulario; sin máximo de respuestas; el botón de terminar aparece desde la primera.
 
-**Hallazgo (discrepancia D2 del plan)**: la regla general del prompt exige terminar cada turno con una pregunta, pero la instrucción adicional del modo abierto dice "pregunta solo cuando sea realmente útil". La spec (FR-011) dice lo primero. Falta decidir cuál manda.
+**Decisión confirmada en la clarificación del 2026-11-01 (D2, resuelta)**: la pregunta final es **obligatoria en el modo vocabulario** (el prompt exige "una pregunta directa que invite a responder") y **opcional en el modo abierto** ("pregunta solo cuando sea realmente útil"), porque ahí el estudiante lidera el tema. El código ya se comportaba así; lo que se corrigió fue la spec (FR-011).
 
 ## 4. Tema nuevo y no repetido
 
@@ -42,9 +44,17 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 
 ## 6. Entrada del estudiante: voz continua con texto editable
 
-**Decisión**: reconocimiento de voz del navegador en modo continuo con resultados parciales, idioma `en-US`; el texto va a un cuadro editable y el estudiante revisa antes de enviar. Si el navegador no lo soporta, se avisa y se escribe. No hay manejo de errores de reconocimiento (permiso denegado, sin micrófono): brecha D1.
+**Decisión**: reconocimiento de voz del navegador en modo continuo con resultados parciales, idioma `en-US`; el texto va a un cuadro editable y el estudiante revisa antes de enviar. Si el navegador no lo soporta, se avisa y se escribe. Hoy no hay manejo de errores de reconocimiento (permiso denegado, sin micrófono): es D1, el requisito FR-020 decidido y aún sin implementar.
 
 **Justificación**: mismo enfoque que `SpeakingPhase` y Shadowing; no requiere proveedor nuevo.
+
+**Decisión de diseño para FR-020 (pendiente de implementar)**:
+- Escuchar el evento de error del reconocimiento y distinguir dos casos: permiso denegado (`not-allowed` y `service-not-allowed`) y micrófono no encontrado (`audio-capture`).
+- Mostrar el mensaje en la zona de la barra de respuesta donde ya se muestra el aviso de voz no disponible, como alerta accesible. Textos en inglés (la interfaz del estudiante va en inglés) y coherentes con Shadowing: "Microphone access was denied. Please allow microphone access and try again." y "No microphone was found. Connect one and try again."
+- Al ocurrir el error, el estado de grabación vuelve a reposo (no a "revisión") y no se envía nada. El cuadro de respuesta no se deshabilita al grabar, así que el estudiante puede seguir escribiendo sin cambios adicionales.
+- Es el mismo enfoque que T025 de Shadowing, que vive en la rama `001-shadow-implement` y aún no está fusionada: conviene reutilizar el patrón, no inventar otro.
+
+**Alternativas decididas en la clarificación**: un mensaje genérico único (opción B) y no hacer nada (opción C); se eligieron dos mensajes distintos (opción A) porque la acción del estudiante es distinta en cada caso.
 
 ## 7. Salida: texto revelado al ritmo del audio
 
@@ -68,8 +78,8 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 
 **Decisión**: la IA recibe como máximo los últimos 20 mensajes, cada uno recortado a 5000 caracteres; en `respond` además se descartan mensajes consecutivos idénticos, y esa acción reintenta una vez si falla. Si falla, el cliente conserva la respuesta del estudiante (`pendingHistory`) y ofrece "Retry AI response" sin volver a grabar. Si falla la retroalimentación, el estudiante puede volver a pulsar el botón de terminar.
 
-**Consecuencia (D5)**: en una conversación abierta larga la IA pierde el inicio.
+**Límite aceptado (D5, clarificación 2026-11-01)**: en una conversación abierta larga la IA pierde el inicio. Se evaluaron ampliar la ventana (por ejemplo, a 40 mensajes) y resumir lo antiguo, y se descartaron por costo y complejidad sin una necesidad demostrada; queda escrito en la spec y se reabre solo si el uso real lo pide.
 
 ## 11. Verificación
 
-**Decisión**: sin pruebas automatizadas (no hay suite); verificación manual con `quickstart.md`, `npx tsc --noEmit` y ESLint, según el Principio VI. Los cambios de la sección 8 y 9 están **pendientes de verificar en la aplicación corriendo**.
+**Decisión**: sin pruebas automatizadas (no hay suite); verificación manual con `quickstart.md`, `npx tsc --noEmit` y ESLint, según el Principio VI. Los cambios de la sección 8 y 9 están **pendientes de verificar en la aplicación corriendo**, y FR-020 (sección 6) está **pendiente de implementar**: su escenario del quickstart falla hasta entonces.

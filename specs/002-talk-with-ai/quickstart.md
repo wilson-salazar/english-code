@@ -2,7 +2,9 @@
 
 Pasos para comprobar manualmente que el módulo cumple la spec ([spec.md](./spec.md)) de principio a fin. No sustituye al Principio VI (`npx tsc --noEmit`, `npm run lint` y `npm run build` si se tocan rutas o configuración).
 
-**Estado de la verificación al 2026-11-01**: los escenarios 4 y 5 (cambios recientes) están **pendientes de ejecutar en la aplicación corriendo**; el Principio VI los exige para dar la funcionalidad por terminada.
+**Estado de la verificación al 2026-11-01**:
+- Los escenarios 4 y 5 (cambios recientes) están **pendientes de ejecutar en la aplicación corriendo**; el Principio VI los exige para dar la funcionalidad por terminada.
+- El paso 4 del escenario 3 (FR-020, mensajes de micrófono) **fallará hasta que se implemente**: es un requisito decidido, no una brecha aceptada.
 
 ## Prerrequisitos
 
@@ -17,7 +19,7 @@ Pasos para comprobar manualmente que el módulo cumple la spec ([spec.md](./spec
 1. Desde el dashboard, abrir "Talk with AI" → "Practice vocabulary".
 2. Confirmar que aparece un título y una categoría, que la IA abre la conversación y que suena en voz alta (FR-001, FR-014).
 3. Confirmar que las palabras guardadas aparecen en el panel "Words in this conversation" y resaltadas en los mensajes de la IA (FR-004).
-4. Responder (hablando o escribiendo) y enviar; confirmar que el contador "Response N of 5" avanza (FR-006).
+4. Responder (hablando o escribiendo) y enviar; confirmar que el contador "Response N of 5" avanza (FR-006) y que cada turno de la IA en este modo termina con una pregunta directa (FR-011).
 5. Tras la segunda respuesta, confirmar que aparece "Finish & feedback" (FR-007).
 6. Enviar hasta la quinta respuesta y confirmar que la retroalimentación (resumen, fortalezas, mejoras, siguiente paso) aparece sola (FR-006, FR-009).
 7. Marcar una palabra con "Mark learned" y confirmar que sale de la lista (FR-005).
@@ -26,7 +28,7 @@ Pasos para comprobar manualmente que el módulo cumple la spec ([spec.md](./spec
 ## Escenario 2 — Conversación abierta (Historia 2, P2)
 
 1. Abrir "Open conversation". Confirmar que **no** hay panel de palabras y que la IA no habla primero (FR-008).
-2. Enviar una pregunta propia y confirmar que la IA la responde sin cambiar de tema.
+2. Enviar una pregunta propia y confirmar que la IA la responde sin cambiar de tema. En este modo la pregunta final es **opcional**: no es un fallo que algún turno no termine con una pregunta (FR-011).
 3. Confirmar que "Finish topic & feedback" aparece desde la primera respuesta y que no hay tope de 5 (FR-007, FR-008).
 4. Terminar y confirmar que se ofrece "New conversation".
 
@@ -35,7 +37,8 @@ Pasos para comprobar manualmente que el módulo cumple la spec ([spec.md](./spec
 1. Pulsar "Start talking", decir una frase y confirmar que el texto aparece mientras se habla (FR-012).
 2. Editar el texto, usar "Clear" o "Record again" y confirmar que solo se envía lo que quedó en el cuadro.
 3. En un navegador sin voz (por ejemplo Firefox de escritorio), confirmar que se avisa y se puede escribir (FR-013).
-4. **Brecha conocida (D1)**: denegar el permiso del micrófono y confirmar que **no** aparece un mensaje específico. Este paso documenta la brecha; no debe fallar la validación mientras la brecha siga anotada en la spec.
+4. **FR-020 (pendiente de implementar; D1)**: en la configuración del navegador denegar el permiso del micrófono para el sitio y pulsar "Start talking". Esperado: un mensaje claro que pide permitir el micrófono, sin quedarse en "grabando" y con el cuadro de respuesta disponible para escribir. **Hoy este paso falla** (no aparece ningún mensaje).
+5. **FR-020, segundo caso**: sin micrófono conectado (o con la entrada de audio desactivada), pulsar "Start talking". Esperado: un mensaje **distinto** que pide conectar un micrófono, y se puede seguir escribiendo. **Hoy este paso también falla.**
 
 ## Escenario 4 — Cuadro de respuesta más alto (cambio reciente, FR-019 y SC-007)
 
