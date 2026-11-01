@@ -83,6 +83,7 @@ export default function TalkWithAiPage() {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle')
   const [transcript, setTranscript] = useState('')
   const [speechUnsupported, setSpeechUnsupported] = useState(false)
+  const [micError, setMicError] = useState('')
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null)
   const [visibleAssistantText, setVisibleAssistantText] = useState('')
   const [speakingFullText, setSpeakingFullText] = useState('')
@@ -366,6 +367,7 @@ export default function TalkWithAiPage() {
   async function handleNewTopic() {
     if (!profileId || loadingTopic || sending) return
     audioRef.current?.pause()
+    setMicError('')
     if (isOpenMode) {
       await startOpenConversation()
       return
@@ -388,6 +390,11 @@ export default function TalkWithAiPage() {
     }
 
     audioRef.current?.pause()
+    setMicError('')
+    const typedBeforeRecording = transcript
+    // Without a usable microphone nothing was recorded: go back to idle and
+    // restore anything the learner had typed, so they can keep writing (FR-020).
+    let blocked = false
     const recognition = new SpeechRecognition()
     recognition.lang = 'en-US'
     recognition.continuous = true
@@ -399,7 +406,23 @@ export default function TalkWithAiPage() {
       }
       setTranscript(heard.trim())
     }
-    recognition.onend = () => setRecordingState('review')
+    recognition.onerror = (event: SpeechRecognitionType) => {
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        blocked = true
+        setMicError('Microphone access was denied. Please allow microphone access and try again.')
+      } else if (event.error === 'audio-capture') {
+        blocked = true
+        setMicError('No microphone was found. Connect one and try again.')
+      }
+    }
+    recognition.onend = () => {
+      if (blocked) {
+        setTranscript(typedBeforeRecording)
+        setRecordingState('idle')
+        return
+      }
+      setRecordingState('review')
+    }
     recognitionRef.current = recognition
     setTranscript('')
     setRecordingState('recording')
@@ -429,6 +452,7 @@ export default function TalkWithAiPage() {
     stickToBottomRef.current = true
     setSending(true)
     setError('')
+    setMicError('')
     recognitionRef.current?.stop()
 
     let activeConversationId = conversationId
@@ -928,6 +952,9 @@ export default function TalkWithAiPage() {
 
               {speechUnsupported && (
                 <p className="mt-2 text-xs text-amber-300">Voice recognition is unavailable in this browser. You can still type your answer.</p>
+              )}
+              {micError && (
+                <p className="mt-2 text-xs text-red-300" role="alert">{micError} You can still type your answer.</p>
               )}
             </>
           )}
