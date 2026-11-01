@@ -48,7 +48,7 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 
 **Justificación**: mismo enfoque que `SpeakingPhase` y Shadowing; no requiere proveedor nuevo.
 
-**Decisión de diseño para FR-020 (implementada en T021, pendiente de verificar en pantalla)**:
+**Decisión de diseño para FR-020 (implementada en T021, verificada en pantalla en T022)**:
 - Escuchar el evento de error del reconocimiento y distinguir dos casos: permiso denegado (`not-allowed` y `service-not-allowed`) y micrófono no encontrado (`audio-capture`).
 - Mostrar el mensaje en la zona de la barra de respuesta donde ya se muestra el aviso de voz no disponible, como alerta accesible. Textos en inglés (la interfaz del estudiante va en inglés) y coherentes con Shadowing: "Microphone access was denied. Please allow microphone access and try again." y "No microphone was found. Connect one and try again."
 - Al ocurrir el error, el estado de grabación vuelve a reposo (no a "revisión") y no se envía nada. Como grabar vacía el cuadro de respuesta, se restaura lo que el estudiante ya había escrito para que no lo pierda; el cuadro no se deshabilita, así que puede seguir escribiendo.
@@ -82,4 +82,4 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 
 ## 11. Verificación
 
-**Decisión**: sin pruebas automatizadas (no hay suite); verificación manual con `quickstart.md`, `npx tsc --noEmit` y ESLint, según el Principio VI. Los cambios de la sección 8 y 9 están **pendientes de verificar en la aplicación corriendo**, igual que FR-020 (sección 6), ya implementado.
+**Decisión**: sin pruebas automatizadas (no hay suite); verificación manual con `quickstart.md`, `npx tsc --noEmit` y ESLint, según el Principio VI. El usuario ya verificó en la aplicación corriendo FR-020 (sección 6, T022) y los cambios de las secciones 8 y 9 (T023 y T027).

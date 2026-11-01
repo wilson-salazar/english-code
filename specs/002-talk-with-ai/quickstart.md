@@ -3,8 +3,7 @@
 Pasos para comprobar manualmente que el módulo cumple la spec ([spec.md](./spec.md)) de principio a fin. No sustituye al Principio VI (`npx tsc --noEmit`, `npm run lint` y `npm run build` si se tocan rutas o configuración).
 
 **Estado de la verificación al 2026-11-01**:
-- Los escenarios 4 y 5 (cambios recientes) están **pendientes de ejecutar en la aplicación corriendo**; el Principio VI los exige para dar la funcionalidad por terminada.
-- Los pasos 4 y 5 del escenario 3 (FR-020, mensajes de micrófono) están implementados y **pendientes de ejecutar** también.
+- Los escenarios 4 y 5 (cambios recientes) y los pasos 4 y 5 del escenario 3 (FR-020, mensajes de micrófono) ya los **verificó el usuario en la aplicación corriendo** (T022, T023 y T027).
 
 ## Prerrequisitos
 

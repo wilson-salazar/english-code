@@ -159,6 +159,6 @@ Como estudiante, quiero oír cada mensaje de la IA mientras lo leo, poder repeti
 - Las respuestas del estudiante admiten hasta 5000 caracteres.
 - **Límite conocido**: la IA solo recuerda los últimos 20 mensajes de la conversación. Es una decisión aceptada, no una brecha; si el uso real muestra que estorba, se reabre con `/speckit-clarify`.
 - La retroalimentación se muestra al terminar; lo que queda guardado de ella en el historial es el mensaje de cierre de la IA.
-- **Pendiente de verificar**: FR-020 (mensajes para permiso de micrófono denegado y micrófono no encontrado) ya está implementado, pero falta comprobarlo en la aplicación corriendo (T022 de `tasks.md`).
+- **Verificado**: FR-020 (mensajes para permiso de micrófono denegado y micrófono no encontrado) está implementado y el usuario lo comprobó en la aplicación corriendo (T022 de `tasks.md`).
 - El módulo requiere conexión a internet para la IA, la voz y el reconocimiento de voz del navegador, igual que el resto de módulos de habla.
 - Las palabras guardadas se administran desde el widget de vocabulario personal de la aplicación; este módulo solo las usa y permite marcarlas como aprendidas.
