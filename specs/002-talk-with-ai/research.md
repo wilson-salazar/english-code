@@ -26,7 +26,7 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 - Modo vocabulario: hasta 10 palabras guardadas no aprendidas (las más antiguas primero); la IA debe usar cada una al menos una vez en sus primeros cuatro turnos. El estudiante responde hasta `MAX_USER_TURNS = 5` veces; al enviar la quinta, la pantalla pide la retroalimentación sola. El botón de terminar aparece desde la segunda respuesta.
 - Modo abierto: no se envía ni se usa vocabulario; sin máximo de respuestas; el botón de terminar aparece desde la primera.
 
-**Decisión confirmada en la clarificación del 2026-11-01 (D2, resuelta)**: la pregunta final es **obligatoria en el modo vocabulario** (el prompt exige "una pregunta directa que invite a responder") y **opcional en el modo abierto** ("pregunta solo cuando sea realmente útil"), porque ahí el estudiante lidera el tema. El código ya se comportaba así; lo que se corrigió fue la spec (FR-011).
+**Decisión confirmada en la clarificación del 2026-11-01 (D2, resuelta)**: la pregunta final es **obligatoria en el modo vocabulario** (el prompt exige "una pregunta directa que invite a responder") y **opcional en el modo abierto** ("pregunta solo cuando sea realmente útil"), porque ahí el estudiante lidera el tema. Primero se corrigió la spec (FR-011). El código solo lo cumplía a medias, porque la constante `system` seguía exigiendo la pregunta también en el modo abierto; `/speckit-converge` lo detectó y se corrigió en T032.
 
 ## 4. Tema nuevo y no repetido
 
@@ -58,7 +58,7 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 
 ## 7. Salida: texto revelado al ritmo del audio
 
-**Decisión**: cada mensaje de la IA se pide a `/api/tts` (voz femenina) y el texto visible avanza según el progreso de reproducción; hay un tope de 45 segundos y, si el audio falla, el texto se escribe igual mediante una animación sin sonido. El estudiante puede saltar el audio, repetir cualquier mensaje y escuchar el título del tema y cada palabra guardada. Las palabras guardadas se resaltan en los mensajes de la IA.
+**Decisión**: cada mensaje de la IA se pide a `/api/tts` (voz femenina) y el texto visible avanza según el progreso de reproducción; hay un tope de 45 segundos y, si el audio falla, el texto se escribe igual mediante una animación sin sonido. El estudiante puede saltar el audio, repetir cualquier mensaje y escuchar el título del tema y cada palabra guardada. Las palabras guardadas se resaltan en los mensajes de la IA. Cada reproducción lleva un identificador (`playbackIdRef`, T034): el audio que termina de cargar después de que el estudiante lo saltó o pidió otro no suena.
 
 **Dependencia (D3)**: las palabras sueltas pasan por el mismo `/api/tts`; en esta rama aún puede pronunciarlas en español por azar. El arreglo está en la rama de Shadowing.
 
@@ -82,4 +82,4 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 
 ## 11. Verificación
 
-**Decisión**: sin pruebas automatizadas (no hay suite); verificación manual con `quickstart.md`, `npx tsc --noEmit` y ESLint, según el Principio VI. El usuario ya verificó en la aplicación corriendo FR-020 (sección 6, T022) y los cambios de las secciones 8 y 9 (T023 y T027).
+**Decisión**: sin pruebas automatizadas (no hay suite); verificación manual con `quickstart.md`, `npx tsc --noEmit` y ESLint, según el Principio VI. El usuario ya verificó en la aplicación corriendo FR-020 (sección 6, T022) y los cambios de las secciones 8 y 9 (T023 y T027). Las correcciones de la convergencia (T032 a T037) siguen **pendientes de verificar** (T038).

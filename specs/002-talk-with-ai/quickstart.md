@@ -4,6 +4,7 @@ Pasos para comprobar manualmente que el módulo cumple la spec ([spec.md](./spec
 
 **Estado de la verificación al 2026-11-01**:
 - Los escenarios 4 y 5 (cambios recientes) y los pasos 4 y 5 del escenario 3 (FR-020, mensajes de micrófono) ya los **verificó el usuario en la aplicación corriendo** (T022, T023 y T027).
+- El escenario 8 (correcciones de la convergencia, T032 a T037) está **pendiente de ejecutar** (T038); el Principio VI lo exige para dar la funcionalidad por terminada.
 
 ## Prerrequisitos
 
@@ -63,3 +64,14 @@ Pasos para comprobar manualmente que el módulo cumple la spec ([spec.md](./spec
 ## Escenario 7 — Aislamiento de datos (FR-016, SC-008)
 
 Con dos cuentas de prueba, confirmar que una no ve las conversaciones, mensajes ni palabras de la otra. Consulta de solo lectura útil: `select tablename, policyname from pg_policies where tablename in ('personal_vocabulary','ai_conversations','ai_conversation_messages');` debe mostrar las tres políticas descritas en [data-model.md](./data-model.md).
+
+## Escenario 8 — Correcciones de la convergencia (T032 a T037)
+
+Para simular fallos: en las herramientas de desarrollo de Chrome, pestaña Network, clic derecho sobre una petición a `/api/talk` → "Block request URL" (se quita igual). Para que el audio tarde, usar en esa pestaña la velocidad "Slow 3G".
+
+1. **Pregunta opcional (FR-011)**: en "Open conversation", conversar varios turnos y confirmar que la IA no termina siempre con una pregunta. En "Talk with AI", confirmar que sigue terminando con una pregunta directa.
+2. **Retroalimentación sin conexión (FR-009)**: con `/api/talk` bloqueada, pulsar "Finish & feedback". Esperado: un error claro, sin quedarse en "AI is thinking...". Quitar el bloqueo, pulsar de nuevo y confirmar que llega la retroalimentación.
+3. **Saltar audio que aún carga (FR-014, SC-003)**: en "Slow 3G", pulsar "Skip audio →" apenas aparece un mensaje de la IA y confirmar que después no suena. Repetir un mensaje y, mientras carga, pedir otro: solo debe sonar el último, y "Skip audio →" debe seguir disponible.
+4. **Editar mientras se graba (FR-012)**: pulsar "Start talking", hablar, editar el cuadro y seguir hablando. Esperado: la grabación se detiene, aparece "Record again" y lo editado no se reemplaza.
+5. **Tema nuevo mientras se graba (FR-010)**: pulsar "Start talking" y luego "New topic" o "New conversation", y seguir hablando. Esperado: el cuadro queda vacío y aparece "Start talking".
+6. **Sin sexta respuesta (FR-006)**: en "Talk with AI", bloquear `/api/talk` justo antes de enviar la quinta respuesta. Esperado: un error, y el cuadro, "Start talking" y el envío quedan deshabilitados. Quitar el bloqueo y confirmar que "Finish & feedback" entrega la retroalimentación.

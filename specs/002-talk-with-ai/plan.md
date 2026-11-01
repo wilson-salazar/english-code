@@ -6,7 +6,7 @@
 
 **Naturaleza del plan**: retroactivo. El módulo ya está construido; este plan documenta la arquitectura y las decisiones reales del código actual, verificadas contra los archivos citados, y señala con honestidad dónde el código se aparta de la spec o de la constitución. No propone un rediseño.
 
-**Actualización 2026-11-01** (tras la sesión de `/speckit-clarify`): FR-011 se alineó con el código (la pregunta final es opcional en el modo abierto), se agregó FR-020 (mensajes de micrófono, implementado después en T021 y verificado en pantalla en T022) y el límite de 20 mensajes quedó aceptado. Las discrepancias D1, D2 y D5 están cerradas; el detalle está en la sección de discrepancias.
+**Actualización 2026-11-01** (tras la sesión de `/speckit-clarify`): FR-011 se aclaró (la pregunta final es opcional en el modo abierto, y el prompt se alineó después en T032), se agregó FR-020 (mensajes de micrófono, implementado después en T021 y verificado en pantalla en T022) y el límite de 20 mensajes quedó aceptado. Las discrepancias D1, D2 y D5 están cerradas; el detalle está en la sección de discrepancias.
 
 ## Resumen
 
@@ -43,7 +43,7 @@ Módulo de conversación guiada en inglés con una IA, con dos modos servidos po
 | III. Seguridad de los datos y RLS (NO NEGOCIABLE) | PASS | Las tres tablas tienen RLS activa y una política limitada al dueño, verificadas contra la base local (`pg_policies`); llegaron en migraciones incrementales (`20260720030000`, `20260720040000`). Este plan no agrega ni modifica datos. |
 | IV. Local-first y privado | PASS | Sin dependencia de nube propia; solo los proveedores de IA y voz que ya usa el resto de la app. |
 | V. Contratos de componentes estables | N/A | Talk no es una fase de escenario ni de capítulo: no usa el contrato `onComplete()` de `components/phases/*`. |
-| VI. Verificado antes de terminar | PASS | `tsc` y ESLint pasan (T030) y el usuario verificó en la aplicación corriendo los mensajes de micrófono, el cuadro de 3 filas y el desplazamiento automático (T022, T023 y T027; escenarios 3, 4 y 5 de [quickstart.md](./quickstart.md)). |
+| VI. Verificado antes de terminar | ⚠ PENDIENTE | `tsc` y ESLint pasan, y el usuario verificó en la aplicación corriendo los mensajes de micrófono, el cuadro de 3 filas y el desplazamiento automático (T022, T023 y T027; escenarios 3, 4 y 5 de [quickstart.md](./quickstart.md)). Las correcciones de la convergencia (T032 a T037) **no se han ejercitado en la aplicación corriendo**; se resuelve con T038 (escenario 8), y hasta entonces la funcionalidad no debe darse por terminada. |
 
 No hay violaciones de diseño que justificar.
 
@@ -63,7 +63,7 @@ No hay violaciones de diseño que justificar.
 | # | Qué se discutió | Cómo se resolvió |
 |---|---|---|
 | D1 | No había mensaje específico si se denegaba el permiso del micrófono o no había micrófono. | Pasó a ser el requisito FR-020 en la clarificación del 2026-11-01. `startRecording` en `app/talk/page.tsx` maneja `not-allowed`, `service-not-allowed` y `audio-capture`, vuelve a reposo y restaura lo que el estudiante había escrito (T021). El usuario lo verificó en pantalla (T022). |
-| D2 | FR-011 decía que cada turno termina con una pregunta, pero el modo abierto la deja opcional (`app/api/talk/route.ts`: "Ask a question only when it is genuinely useful"; el modo vocabulario sí exige una pregunta directa). | Se corrigió la **spec**: obligatoria en "Talk with AI", opcional en el modo abierto. El código ya se comportaba así; no hay cambio de código. |
+| D2 | FR-011 decía que cada turno termina con una pregunta, pero el modo abierto la deja opcional (`app/api/talk/route.ts`: "Ask a question only when it is genuinely useful"; el modo vocabulario sí exige una pregunta directa). | Se corrigió la **spec**: obligatoria en "Talk with AI", opcional en el modo abierto. El código solo lo cumplía a medias: la constante `system` seguía exigiendo la pregunta en ambos modos, algo que `/speckit-converge` detectó y se corrigió en T032. |
 | D5 | En una conversación larga la IA solo recuerda los últimos 20 mensajes (`.slice(-20)` en `respond` y `feedback`). | **Límite aceptado** y escrito en la spec (Casos límite y Supuestos). Se reabre con `/speckit-clarify` solo si el uso real demuestra que estorba. |
 
 ## Estructura del proyecto
