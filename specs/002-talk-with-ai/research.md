@@ -52,7 +52,7 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 - Escuchar el evento de error del reconocimiento y distinguir dos casos: permiso denegado (`not-allowed` y `service-not-allowed`) y micrófono no encontrado (`audio-capture`).
 - Mostrar el mensaje en la zona de la barra de respuesta donde ya se muestra el aviso de voz no disponible, como alerta accesible. Textos en inglés (la interfaz del estudiante va en inglés) y coherentes con Shadowing: "Microphone access was denied. Please allow microphone access and try again." y "No microphone was found. Connect one and try again."
 - Al ocurrir el error, el estado de grabación vuelve a reposo (no a "revisión") y no se envía nada. Como grabar vacía el cuadro de respuesta, se restaura lo que el estudiante ya había escrito para que no lo pierda; el cuadro no se deshabilita, así que puede seguir escribiendo.
-- Es el mismo enfoque que T025 de Shadowing, que vive en la rama `001-shadow-implement` y aún no está fusionada: conviene reutilizar el patrón, no inventar otro.
+- Es el mismo enfoque que T025 de Shadowing (`components/shadow/WordRepeatStep.tsx`): conviene reutilizar el patrón, no inventar otro.
 
 **Alternativas decididas en la clarificación**: un mensaje genérico único (opción B) y no hacer nada (opción C); se eligieron dos mensajes distintos (opción A) porque la acción del estudiante es distinta en cada caso.
 
@@ -60,7 +60,7 @@ Documento retroactivo: cada decisión describe lo que el código hace hoy, verif
 
 **Decisión**: cada mensaje de la IA se pide a `/api/tts` (voz femenina) y el texto visible avanza según el progreso de reproducción; hay un tope de 45 segundos y, si el audio falla, el texto se escribe igual mediante una animación sin sonido. El estudiante puede saltar el audio, repetir cualquier mensaje y escuchar el título del tema y cada palabra guardada. Las palabras guardadas se resaltan en los mensajes de la IA. Cada reproducción lleva un identificador (`playbackIdRef`, T034): el audio que termina de cargar después de que el estudiante lo saltó o pidió otro no suena.
 
-**Dependencia (D3)**: las palabras sueltas pasan por el mismo `/api/tts`; en esta rama aún puede pronunciarlas en español por azar. El arreglo está en la rama de Shadowing.
+**Dependencia (D3, resuelta)**: las palabras sueltas pasan por el mismo `/api/tts`, que desde la fusión de Shadowing fuerza el inglés en textos de hasta 5 palabras. Los mensajes más largos de la IA conservan `eleven_multilingual_v2`, que detecta el idioma.
 
 ## 8. Desplazamiento automático (cambio reciente, FR-017 y FR-018)
 

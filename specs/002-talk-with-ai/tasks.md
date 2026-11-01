@@ -140,9 +140,9 @@ Next.js 16 App Router, un solo proyecto; rutas relativas a la raíz del reposito
 
 ### Notas informativas (sin tareas de código)
 
-- **D3, idioma de `/api/tts`**: en esta rama la ruta deja que ElevenLabs adivine el idioma de los textos cortos, y las palabras guardadas a veces se pronuncian en español. El arreglo vive en la rama `001-shadow-implement`; Talk se beneficia al fusionarla, sin cambios propios.
+- **D3, idioma de `/api/tts` (resuelta)**: la fusión de Shadowing en `main` fuerza el inglés en textos de hasta 5 palabras, sin cambios propios de Talk. Los textos más largos conservan el modelo que detecta el idioma.
 - **D4, temas únicos por título**: la unicidad es por título, no por significado; es lo que SC-005 pide tal como está escrito.
-- **T021 y la rama de Shadowing**: el patrón de errores de micrófono que T021 reutiliza está en `001-shadow-implement` y todavía no está fusionado. Si esa rama no se ha fusionado cuando se implemente T021, se copia el patrón y los textos; no hace falta esperar.
+- **T021 y la rama de Shadowing**: T021 copió el patrón y los textos de errores de micrófono de Shadowing, porque esa rama aún no estaba fusionada cuando se implementó.
 
 ---
 

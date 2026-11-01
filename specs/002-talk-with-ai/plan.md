@@ -6,7 +6,7 @@
 
 **Naturaleza del plan**: retroactivo. El módulo ya está construido; este plan documenta la arquitectura y las decisiones reales del código actual, verificadas contra los archivos citados, y señala con honestidad dónde el código se aparta de la spec o de la constitución. No propone un rediseño.
 
-**Actualización 2026-11-01** (tras la sesión de `/speckit-clarify`): FR-011 se aclaró (la pregunta final es opcional en el modo abierto, y el prompt se alineó después en T032), se agregó FR-020 (mensajes de micrófono, implementado después en T021 y verificado en pantalla en T022) y el límite de 20 mensajes quedó aceptado. Las discrepancias D1, D2 y D5 están cerradas; el detalle está en la sección de discrepancias.
+**Actualización 2026-11-01** (tras la sesión de `/speckit-clarify`): FR-011 se aclaró (la pregunta final es opcional en el modo abierto, y el prompt se alineó después en T032), se agregó FR-020 (mensajes de micrófono, implementado después en T021 y verificado en pantalla en T022) y el límite de 20 mensajes quedó aceptado. Las discrepancias D1, D2, D3 y D5 están cerradas; el detalle está en la sección de discrepancias.
 
 ## Resumen
 
@@ -55,7 +55,6 @@ No hay violaciones de diseño que justificar.
 
 | # | Discrepancia | Evidencia | Qué conviene hacer |
 |---|---|---|---|
-| D3 | **El `/api/tts` de esta rama aún deja a la IA elegir el idioma** de textos cortos; las palabras sueltas ("escuchar una palabra guardada") a veces se pronuncian en español. El arreglo existe en la rama `001-shadow-implement` y no está fusionado. | `app/api/tts/route.ts` usa `eleven_multilingual_v2` sin `language_code`. | Fusionar esa rama; Talk se beneficia sin cambios propios. |
 | D4 | **"Tema no repetido" se garantiza solo por título** (restricción de unicidad en base de datos), no por significado; dos títulos distintos pueden tratar lo mismo. | Migración: `unique (user_id, topic_key)` sobre el título normalizado. | Aceptable para SC-005 tal como está escrito; revisar si el usuario quiere algo más estricto. |
 
 **Resueltas** (se conservan los identificadores para poder rastrearlas):
@@ -64,6 +63,7 @@ No hay violaciones de diseño que justificar.
 |---|---|---|
 | D1 | No había mensaje específico si se denegaba el permiso del micrófono o no había micrófono. | Pasó a ser el requisito FR-020 en la clarificación del 2026-11-01. `startRecording` en `app/talk/page.tsx` maneja `not-allowed`, `service-not-allowed` y `audio-capture`, vuelve a reposo y restaura lo que el estudiante había escrito (T021). El usuario lo verificó en pantalla (T022). |
 | D2 | FR-011 decía que cada turno termina con una pregunta, pero el modo abierto la deja opcional (`app/api/talk/route.ts`: "Ask a question only when it is genuinely useful"; el modo vocabulario sí exige una pregunta directa). | Se corrigió la **spec**: obligatoria en "Talk with AI", opcional en el modo abierto. El código solo lo cumplía a medias: la constante `system` seguía exigiendo la pregunta en ambos modos, algo que `/speckit-converge` detectó y se corrigió en T032. |
+| D3 | `/api/tts` dejaba adivinar el idioma de los textos cortos, y las palabras guardadas a veces se pronunciaban en español. | Se resolvió sin cambios propios de Talk al fusionar Shadowing en `main` ([PR #1](https://github.com/wilson-salazar/english-code/pull/1)): los textos de hasta 5 palabras se fuerzan a inglés. Los textos más largos, como los mensajes de la IA, conservan `eleven_multilingual_v2`, que detecta el idioma; el usuario eligió esa voz (FR-015 de Shadowing). |
 | D5 | En una conversación larga la IA solo recuerda los últimos 20 mensajes (`.slice(-20)` en `respond` y `feedback`). | **Límite aceptado** y escrito en la spec (Casos límite y Supuestos). Se reabre con `/speckit-clarify` solo si el uso real demuestra que estorba. |
 
 ## Estructura del proyecto

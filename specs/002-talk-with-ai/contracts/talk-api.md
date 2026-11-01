@@ -98,4 +98,4 @@ Talk la usa para todo el audio, con `{ "text": "...", "speaker": "female" }` y e
 - **Mensajes de la IA**: el texto completo del mensaje.
 - **Palabras guardadas y título del tema**: textos cortos de una palabra o pocas palabras.
 - El cliente corta la reproducción a los 45 segundos y, si la petición o el audio fallan, escribe el texto sin sonido (FR-014).
-- El contrato propio de `/api/tts` pertenece a esa ruta, no a este módulo. En esta rama la ruta deja que ElevenLabs adivine el idioma, lo que explica la discrepancia D3 del plan.
+- El contrato propio de `/api/tts` pertenece a esa ruta, no a este módulo. La ruta fuerza el inglés en textos de hasta 5 palabras, como las palabras guardadas y muchos títulos; en los más largos, ElevenLabs detecta el idioma (D3 del plan, resuelta).
