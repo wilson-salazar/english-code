@@ -21,7 +21,7 @@ Como estudiante que escribe en inglés para su trabajo, quiero pedir una revisi�
 **Escenarios de aceptación**:
 
 1. **Dado** un texto que no suena natural, **Cuando** el estudiante activa el inspector, **Entonces** aparece en un cuadro separado una versión más natural que conserva lo que quiso decir, y su texto original no cambia.
-2. **Dado** un texto que ya suena natural, **Cuando** activa el inspector, **Entonces** se le indica que no hay nada que mejorar, y no se ofrece copiar ninguna recomendación.
+2. **Dado** una oración o un párrafo que ya está bien, **Cuando** activa el inspector, **Entonces** no se inventa ninguna sugerencia: se le indica en inglés que esa oración o ese párrafo está bien, y no se ofrece copiar nada.
 3. **Dado** que hay una recomendación, **Cuando** pulsa copiar, **Entonces** el texto recomendado queda listo para pegar, y la pantalla confirma que se copió.
 4. **Dado** un cuadro de texto vacío, **Cuando** mira el inspector, **Entonces** no puede activarlo.
 5. **Dado** que el inspector está trabajando, **Cuando** el estudiante espera, **Entonces** ve que la revisión está en curso y el botón queda deshabilitado hasta que termine.
@@ -114,7 +114,7 @@ Como estudiante, quiero un módulo Tools en el menú que muestre las herramienta
 - **FR-007**: La vista DEBE tener un botón que active el inspector de sentido. Cada pulsación revisa una vez el texto actual, y no se revisa nada sin pulsarlo.
 - **FR-008**: El inspector DEBE evaluar si la oración o el párrafo está bien redactado, suena natural y tiene sentido en inglés, incluido el uso de palabras bien escritas pero equivocadas para el contexto.
 - **FR-009**: Si hay algo que mejorar, la recomendación DEBE aparecer en un cuadro separado del texto del estudiante, y conservar lo que quiso decir, sin agregar información nueva.
-- **FR-010**: Si no hay nada que mejorar, la vista DEBE indicarlo con claridad, sin recomendación.
+- **FR-010**: La recomendación NO es obligatoria. Si el texto está bien, el inspector NO DEBE proponer cambios solo por dar una sugerencia, y la vista DEBE indicar en inglés que está bien, según se trate de una oración o de un párrafo, sin recomendación.
 - **FR-011**: La recomendación NO DEBE modificar el texto del estudiante.
 - **FR-012**: La recomendación DEBE ser adecuada al nivel del estudiante (A2 a C1), sin dejar de sonar natural en un contexto profesional de tecnología.
 - **FR-013**: La vista DEBE tener un botón para copiar la recomendación, disponible solo cuando la hay, que copie únicamente su texto y confirme que se copió.
