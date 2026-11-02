@@ -39,7 +39,7 @@ Las 7 rutas de `app/api` que gastan créditos pasan a exigir una sesión válida
 | III. Seguridad de los datos y RLS (NO NEGOCIABLE) | PASS | RLS no cambia y está activa en las 16 tablas. Sin `db:reset`. Se hace un `pg_dump` verificado, fuera del repositorio y de carpetas sincronizadas, antes del único paso riesgoso: reiniciar los servicios locales. |
 | IV. Local-first y privado | PASS, con dependencia | Reduce la exposición del servidor de la aplicación. La base abierta a la red local sigue fuera del alcance y queda como dependencia (ver abajo). Tailscale con HTTPS es la etapa siguiente. |
 | V. Contratos de componentes estables | PASS | `onComplete()` y las props de las fases no cambian. Solo cambia cómo piden datos al servidor y cómo reaccionan a un error. |
-| VI. Verificado antes de terminar | Pendiente hasta implementar | `tsc`, lint, build y verificación en la app corriendo, según [quickstart.md](./quickstart.md). |
+| VI. Verificado antes de terminar | Parcial (2026-11-01): `tsc`, lint y build pasan; faltan pruebas del dueño | `tsc`, lint, build y verificación en la app corriendo, según [quickstart.md](./quickstart.md), que registra cada escenario. Pasa a PASS cuando el dueño complete T030, T031, T040, T047, T058 y T063. |
 
 **Dependencias nuevas**: ninguna. **Servicios nuevos**: ninguno.
 

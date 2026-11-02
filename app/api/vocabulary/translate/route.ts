@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import {
+  exceedsLength,
+  guardRequest,
+  invalidRequestResponse,
+  isOptionalTextArray,
+  tooLargeResponse,
+} from '@/lib/api-guard'
+
+const MAX_BODY_BYTES = 16 * 1024
 
 interface TranslationRequest {
   terms?: string[]
@@ -31,6 +40,9 @@ function parseTranslations(input: unknown, requestedTerms: string[]): Translatio
 }
 
 export async function POST(request: NextRequest) {
+  const guard = await guardRequest(request, { maxBodyBytes: MAX_BODY_BYTES })
+  if (!guard.ok) return guard.response
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
       { error: 'Spanish meanings require ANTHROPIC_API_KEY in .env.local.' },
@@ -38,7 +50,10 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const body = await request.json() as TranslationRequest
+  const body = guard.body as TranslationRequest
+  if (!isOptionalTextArray(body.terms)) return invalidRequestResponse()
+  if (exceedsLength(body.terms, 120)) return tooLargeResponse()
+
   const terms = [...new Set((body.terms ?? [])
     .map(term => term.trim())
     .filter(Boolean))]

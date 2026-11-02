@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { postJson } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { splitIntoWords } from '@/lib/shadow'
 import WordRepeatStep from './WordRepeatStep'
@@ -43,11 +44,7 @@ export default function ShadowSession() {
 
   const playSentence = useCallback(async (text: string) => {
     try {
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, speaker: 'female' }),
-      })
+      const response = await postJson('/api/tts', { text, speaker: 'female' })
       if (!response.ok) throw new Error('TTS unavailable')
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
@@ -76,16 +73,11 @@ export default function ShadowSession() {
     const timeout = setTimeout(() => controller.abort(), GENERATE_TIMEOUT_MS)
 
     try {
-      const response = await fetch('/api/shadow/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          level: userLevel,
-          recentSentences: usedSentencesRef.current,
-          previousTopic: lastTopicRef.current,
-        }),
-        signal: controller.signal,
-      })
+      const response = await postJson('/api/shadow/generate', {
+        level: userLevel,
+        recentSentences: usedSentencesRef.current,
+        previousTopic: lastTopicRef.current,
+      }, { signal: controller.signal })
       const data = await response.json().catch(() => ({})) as ShadowGenerateResponse
       const words = data.sentence ? splitIntoWords(data.sentence) : []
 

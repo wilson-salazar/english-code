@@ -67,6 +67,6 @@ El reintento repite la misma petición solo tras un 401, cuando el proveedor aú
 ## Cómo reacciona cada pantalla
 
 - **Evaluaciones** (3 pantallas): comprueban `res.ok`, no cambian `feedback`, no escriben en la base, muestran `error` y conservan la respuesta.
-- **Talk y Shadowing**: sin cambios: ya muestran `error` y permiten reintentar.
+- **Talk y Shadowing**: ya muestran `error` y permiten reintentar. Además, Talk rechaza en la propia pantalla una respuesta de más de 5000 caracteres **antes de guardarla**: una respuesta ya guardada que el servidor rechaza no se podría reintentar nunca.
 - **Audio**: sin cambios: siguen sin sonido y con el texto visible; el aviso global explica la causa.
 - **Vocabulario**: sin cambios: la traducción queda pendiente y se reintenta más adelante.

@@ -62,6 +62,17 @@ English Code is an interactive English-learning application for developers, QA e
 
 7. Open [http://localhost:3000](http://localhost:3000).
 
+8. Create your account. Sign-ups are closed, because this is a single-user app, so the sign-in screen does not offer them. In Supabase Studio, go to Authentication, choose Add user, and enable auto-confirm. Then set your name and level in the SQL editor, using the code `A2`, `B1`, `B2`, or `C1`:
+
+   ```sql
+   update public.users
+   set full_name = 'Your name',
+       level_id = (select id from public.levels where code = 'B1')
+   where email = 'you@example.com';
+   ```
+
+The app only listens on this machine (`127.0.0.1`), so other devices on your network cannot reach it.
+
 Local services:
 
 - Supabase Studio: [http://127.0.0.1:54323](http://127.0.0.1:54323)
@@ -98,13 +109,15 @@ If you prefer guided installation, copy the prompt from [AI_SETUP_PROMPT.md](./A
 
 ## User guide
 
-For a walkthrough of the app itself (sign up, lessons, phases, Talk with AI) — written for end users, in Spanish — see [MANUAL_USUARIO.md](./MANUAL_USUARIO.md).
+For a walkthrough of the app itself (sign in, lessons, phases, Talk with AI) — written for end users, in Spanish — see [MANUAL_USUARIO.md](./MANUAL_USUARIO.md).
 
 ## Data and security
 
 - Database migrations are stored in `supabase/migrations`.
 - Lesson content is loaded from the Supabase seed files.
 - Row Level Security restricts private user data to its owner.
+- API routes that spend AI or audio credits require a valid session and reject oversized input.
+- Sign-ups are closed in `supabase/config.toml`. Closing them does not protect a local database that is reachable from your network, so keep the Supabase ports closed to other devices.
 - Local Supabase credentials are development credentials and must not be reused in production.
 
 ## Technology

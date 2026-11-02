@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { postJson } from '@/lib/api'
 import { sentenceMatches } from '@/lib/shadow'
 
 interface Props {
@@ -23,11 +24,7 @@ export default function FinalSentenceStep({ sentence, onFinished }: Props) {
 
   async function playSentence() {
     try {
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: sentence, speaker: 'female' }),
-      })
+      const response = await postJson('/api/tts', { text: sentence, speaker: 'female' })
       if (!response.ok) return
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)

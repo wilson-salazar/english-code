@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { PERSONAL_VOCABULARY_EVENT } from '@/components/FloatingVocabulary'
+import { postJson } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
+
+const MAX_ANSWER_LENGTH = 5000
 
 interface PersonalTerm {
   id: string
@@ -118,11 +121,7 @@ export default function TalkWithAiPage() {
     setSpeakingFullText(text)
 
     try {
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, speaker: 'female' }),
-      })
+      const response = await postJson('/api/tts', { text, speaker: 'female' })
       if (!response.ok) throw new Error('TTS unavailable')
 
       const blob = await response.blob()
@@ -218,15 +217,11 @@ export default function TalkWithAiPage() {
     const previousTopics = (previous ?? []).map(item => item.topic_title)
 
     for (let attempt = 0; attempt < 2; attempt++) {
-      const response = await fetch('/api/talk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'start',
-          vocabulary: selectedTerms.map(item => item.term),
-          previousTopics,
-          level: userLevel,
-        }),
+      const response = await postJson('/api/talk', {
+        action: 'start',
+        vocabulary: selectedTerms.map(item => item.term),
+        previousTopics,
+        level: userLevel,
       })
       const generated = await response.json() as TalkApiResponse
 
@@ -476,6 +471,12 @@ export default function TalkWithAiPage() {
     const cleanTranscript = transcript.trim()
     if (!cleanTranscript || sendingRef.current || pendingHistory || reachedResponseLimit) return
 
+    // Rejected here because a saved answer that the server refuses could never be retried.
+    if (cleanTranscript.length > MAX_ANSWER_LENGTH) {
+      setError('This text is too long. Please shorten it and try again.')
+      return
+    }
+
     sendingRef.current = true
     stickToBottomRef.current = true
     setSending(true)
@@ -544,16 +545,12 @@ export default function TalkWithAiPage() {
       return
     }
     try {
-      const response = await fetch('/api/talk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'respond',
-          mode: isOpenMode ? 'open' : 'vocabulary',
-          vocabulary: terms.map(item => item.term),
-          history: history.map(item => ({ role: item.role, content: item.content })),
-          level,
-        }),
+      const response = await postJson('/api/talk', {
+        action: 'respond',
+        mode: isOpenMode ? 'open' : 'vocabulary',
+        vocabulary: terms.map(item => item.term),
+        history: history.map(item => ({ role: item.role, content: item.content })),
+        level,
       })
       const generated = await response.json() as TalkApiResponse
 
@@ -604,14 +601,10 @@ export default function TalkWithAiPage() {
     }
 
     try {
-      const response = await fetch('/api/talk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'feedback',
-          history: history.map(item => ({ role: item.role, content: item.content })),
-          level,
-        }),
+      const response = await postJson('/api/talk', {
+        action: 'feedback',
+        history: history.map(item => ({ role: item.role, content: item.content })),
+        level,
       })
       const generated = await response.json() as TalkApiResponse
 

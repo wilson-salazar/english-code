@@ -1,18 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import { exceedsLength, guardRequest, invalidRequestResponse, isOptionalText, tooLargeResponse } from '@/lib/api-guard'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-export async function POST(req: NextRequest) {
-  const { response, chapterTitle, prompt } = await req.json()
+const MAX_BODY_BYTES = 32 * 1024
 
-  const message = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 1024,
-    messages: [
-      {
-        role: 'user',
-        content: `You are an English teacher evaluating a grammar exercise from an IT professional learning English.
+export async function POST(req: NextRequest) {
+  const guard = await guardRequest(req, { maxBodyBytes: MAX_BODY_BYTES })
+  if (!guard.ok) return guard.response
+
+  const { response, chapterTitle, prompt } = guard.body
+
+  if (typeof response !== 'string' || !response.trim() || !isOptionalText(chapterTitle) || !isOptionalText(prompt)) {
+    return invalidRequestResponse()
+  }
+  if (exceedsLength(response, 5000) || exceedsLength(prompt, 2000) || exceedsLength(chapterTitle, 200)) {
+    return tooLargeResponse()
+  }
+
+  try {
+    const message = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      messages: [
+        {
+          role: 'user',
+          content: `You are an English teacher evaluating a grammar exercise from an IT professional learning English.
 
 Grammar chapter: "${chapterTitle}"
 Task given to the student: "${prompt}"
@@ -33,17 +47,17 @@ Evaluate the response and return ONLY a valid JSON object with this exact struct
 }
 
 Focus grammar_accuracy specifically on the chapter's grammar point (its title tells you what to check). Be encouraging. This person is learning. Focus on what they did well and what to improve.`,
-      },
-    ],
-  })
+        },
+      ],
+    })
 
-  const text = message.content[0].type === 'text' ? message.content[0].text : ''
-
-  try {
+    const text = message.content[0].type === 'text' ? message.content[0].text : ''
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     const parsed = JSON.parse(jsonMatch?.[0] ?? '{}')
+    if (!parsed.scores) throw new Error('The AI response did not contain scores.')
     return NextResponse.json(parsed)
-  } catch {
-    return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 })
+  } catch (error) {
+    console.error('Evaluate chapter error:', error)
+    return NextResponse.json({ error: 'Your feedback could not be generated. Please try again.' }, { status: 500 })
   }
 }

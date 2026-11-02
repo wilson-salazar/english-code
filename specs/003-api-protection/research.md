@@ -72,7 +72,7 @@ Devuelve un `Response` normal, así que cada pantalla conserva su lógica de `re
 
 ## 6. Cerrar el registro sin perder datos
 
-**Decisión**: en `supabase/config.toml`, `enable_signup = false` en `[auth]` y en `[auth.email]`. Ya están cerrados: SMS (`enable_signup = false`), anónimas (`enable_anonymous_sign_ins = false`) y proveedores externos (ninguno activo). Hoy `/auth/v1/settings` devuelve `disable_signup: false`.
+**Decisión**: en `supabase/config.toml`, `enable_signup = false` solo en `[auth]`. `[auth.email] enable_signup` se queda en `true`: el 2026-11-01 se comprobó que en `false` el servicio arranca con `GOTRUE_EXTERNAL_EMAIL_ENABLED=false` y rechaza todo inicio de sesión con correo (`email_provider_disabled`). Ya están cerrados: SMS (`enable_signup = false`), anónimas (`enable_anonymous_sign_ins = false`) y proveedores externos (ninguno activo). Hoy `/auth/v1/settings` devuelve `disable_signup: false`.
 
 **Pasos**, en este orden:
 1. Conteos por tabla de `public` y de `auth.users`, guardados para comparar.

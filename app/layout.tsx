@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import FloatingVocabulary from "@/components/FloatingVocabulary";
+import SessionNotice from "@/components/SessionNotice";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,6 +44,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}
         <FloatingVocabulary />
+        <SessionNotice />
       </body>
     </html>
   );

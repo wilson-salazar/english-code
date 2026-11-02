@@ -30,7 +30,7 @@ Un evento recibido mientras ya se muestra el aviso no cambia nada, salvo que `se
 | Valor | Archivo | Antes | Después |
 |---|---|---|---|
 | `[auth] enable_signup` | `supabase/config.toml` | `true` | `false` |
-| `[auth.email] enable_signup` | `supabase/config.toml` | `true` | `false` |
+| `[auth.email] enable_signup` | `supabase/config.toml` | `true` | Sin cambio: en `false` también desactiva el inicio de sesión con correo (comprobado el 2026-11-01) |
 | `[auth] enable_anonymous_sign_ins` | `supabase/config.toml` | `false` | Sin cambio |
 | `[auth.sms] enable_signup` | `supabase/config.toml` | `false` | Sin cambio |
 | Script `dev` | `package.json` | `next dev` | `next dev -H 127.0.0.1` |
