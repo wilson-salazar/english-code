@@ -11,6 +11,7 @@ English Code is an interactive English-learning application for developers, QA e
 - AI feedback for written and spoken answers using Anthropic.
 - Personal word and phrase list with duplicate prevention and learned status.
 - `Talk with AI` voice conversations that use up to 10 saved terms and avoid repeated topics.
+- `Writing Assistant`, in the Tools module: marks misspelled words as you type, with corrections on right-click and a fix-all button, and uses Anthropic to check whether your text sounds natural.
 - Progress tracking per user and per level.
 - Local Supabase stack with PostgreSQL, Auth, Studio, migrations, seed data, and Mailpit.
 
@@ -87,7 +88,7 @@ Password recovery emails are captured by Mailpit during local development. They 
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase API URL | Yes |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase publishable/anonymous key | Yes |
-| `ANTHROPIC_API_KEY` | Written and spoken answer evaluation | For AI feedback |
+| `ANTHROPIC_API_KEY` | Written and spoken answer evaluation, and the Writing Assistant's sentence check | For AI feedback |
 | `ELEVENLABS_API_KEY` | Adam and Jessa text-to-speech audio | For generated audio |
 
 Never commit `.env.local` or real API keys. The repository only includes `.env.example` with placeholders.

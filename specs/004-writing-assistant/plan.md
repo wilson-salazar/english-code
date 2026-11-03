@@ -48,7 +48,7 @@ Esta rama parte de `003-api-protection-implement`, porque necesita `guardRequest
 | III. Seguridad de los datos y RLS | PASS | Sin esquema, sin seeds y sin escrituras. SC-010 lo comprueba con conteos. No se ejecuta ningún reinicio de la base. |
 | IV. Local-first y privado | PASS | La revisión de palabras funciona en el navegador. El texto sale del equipo solo al pulsar el inspector, hacia el mismo proveedor que ya usan las evaluaciones. |
 | V. Contratos de componentes estables | PASS | No toca las fases ni `onComplete()`. |
-| VI. Verificado antes de terminar | Pendiente hasta implementar | `tsc`, lint, build y verificación en la app corriendo, según [quickstart.md](./quickstart.md). |
+| VI. Verificado antes de terminar | Parcial (2026-11-01): `tsc`, lint y build pasan; faltan pruebas del dueño | `tsc`, lint, build y verificación en la app corriendo, según [quickstart.md](./quickstart.md), que registra cada escenario. Pasa a PASS cuando el dueño complete T050 y T051. |
 
 **Restricción del stack**: `nspell` es una dependencia de ejecución nueva. Está justificada en [research §2](./research.md) y en la tabla de complejidad.
 
@@ -114,5 +114,5 @@ package.json, AGENTS.md, README.md, MANUAL_USUARIO.md
 | Elemento añadido | Por qué se necesita | Alternativa más simple descartada |
 |---|---|---|
 | Dependencia `nspell` | Las reglas de un corrector (plurales, conjugaciones, sufijos) y sus sugerencias no son triviales de escribir | Corrector del navegador: no permite conocer las sugerencias, ni "Fix all" (FR-016). IA por palabra: gastaría créditos y no sería inmediata (FR-015, FR-023) |
-| 892 KB de diccionarios en el repositorio | Hacen falta en el navegador. Se descargan solo al abrir la herramienta, unos 302 KB comprimidos | Solo `nspell`, sin lista de frecuencia: la primera opción acierta 23 de 30, por debajo de SC-004 |
+| 996 KB de diccionarios y licencias en el repositorio | Hacen falta en el navegador. Se descargan solo al abrir la herramienta, unos 304 KB comprimidos | Solo `nspell`, sin lista de frecuencia: la primera opción acierta 23 de 30, por debajo de SC-004 |
 | Capa detrás del cuadro de texto | Un cuadro de texto no puede colorear palabras individuales | Área editable enriquecida: el cursor, pegar y deshacer quedarían a cargo de la aplicación, con mucho más riesgo |

@@ -81,6 +81,7 @@ Si los diccionarios no cargan, no se marca ninguna palabra, se muestra un aviso,
 | Botón de copiar | `Copy recommendation`, y `Copied` al confirmar |
 | Si no se puede copiar | `Could not copy. Select the text and copy it manually.` |
 | Recomendación obsoleta | `This recommendation is for an earlier version of your text.` |
+| Otro resultado obsoleto | `This result is for an earlier version of your text.` |
 | Corregir todas | `Fix all` |
 | Deshacer | `Undo` |
 | Sin opciones | `No suggestions` |

@@ -2,6 +2,17 @@
 
 Pasos para comprobar la spec ([spec.md](./spec.md)) de principio a fin. No sustituye al Principio VI: `npx tsc --noEmit`, `npm run lint` y `npm run build`.
 
+## Estado de la verificación (2026-11-01)
+
+| Escenario | Estado | Quién | Lo comprobado |
+|---|---|---|---|
+| 1. Llegar a la herramienta | Verificado | Dueño | Informó el 2026-11-02 que entra desde Tools y que todo está bien (T031). La redirección sin sesión no se probó aparte |
+| 2. Inspector de sentido | Verificado | Dueño, con registros revisados por Claude | Informó el 2026-11-02 que la sugerencia, copiar y el texto correcto funcionan (T027). El registro muestra validaciones de sesión correctas desde el servidor en esos minutos, pero no indica qué ruta se llamó. Los pasos 5 a 8 no se confirmaron por separado |
+| 3. Palabras en rojo | Verificado | Claude, con página temporal | Marca inmediata al terminar la palabra, palabra en curso, clic derecho dentro y fuera de una marca, cursor y foco tras reemplazar, texto largo con desplazamiento, `Esc`, y menú cerrado al editar. SC-004: 9 de 10. SC-005: 0 palabras marcadas |
+| 4. Fix all y Undo | Verificado | Claude, con página temporal | Corrige todas, conserva la mayúscula, deja `zxqvbn` marcada con `No suggestions`, y `Undo` devuelve el texto idéntico |
+| 5. Protección | Parcial | Claude | 401 sin token y con token inventado; en pantalla, aviso de sesión con el texto intacto; aviso de más de 5000 caracteres. Faltan los pasos con sesión (T050) |
+| 6. Sin gasto ni datos nuevos | Parcial | Claude | El código no escribe en la base y los conteos no cambiaron con estas pruebas. Falta el recorrido con sesión (T051) |
+
 ## Prerrequisitos
 
 - Supabase local corriendo (`npm run db:start`), **nunca** `db:reset`.

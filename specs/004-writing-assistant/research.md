@@ -52,6 +52,8 @@ Las 4 sin marcar son palabras reales: `manger`, `tho`, `meting` y `cant`. Las co
 
 **Límite de esta medición**: elegí el orden después de ver los conjuntos A y B, y el C ya se había usado en una variante anterior. Por eso SC-004 se vuelve a medir con oraciones nuevas ([quickstart](./quickstart.md), escenario 3).
 
+**Medición final con la lógica real (T011)**: 10 oraciones nuevas, con errores que no estaban en estos conjuntos. Se marcaron 10 de 10, y la primera opción acertó en 9 de 10, justo el mínimo de SC-004. El fallo fue `explane`, que sugiere primero `enplane`, una palabra poco común. La revisión de un texto de 5000 caracteres tarda 0,67 ms.
+
 **Variante descartada**: usar solo la frecuencia en las lecciones (1307 palabras) y preferir la opción más larga en caso de empate dio aciertos de 26, 25 y 22, con errores como `bussiness` → `bossiness`.
 
 **Contracciones**: `dont` sugiere `done`, `font` y `don`, pero no `don't`. Se añade una tabla corta de contracciones escritas sin apóstrofo. `cant` no se marca porque es una palabra válida.
@@ -64,7 +66,7 @@ Las 4 sin marcar son palabras reales: `manger`, `tho`, `meting` y `cant`. Las co
 |---|---|---|
 | `index.dic` | 551 762 bytes | 190 930 bytes |
 | `index.aff` | 3086 bytes | 1013 bytes |
-| Lista de frecuencia (aprox.) | 337 151 bytes | 110 307 bytes |
+| `common-words.json` | 413 303 bytes | 112 150 bytes |
 
 Se cargan solo en esta página, con `import()` dinámico de `nspell` ([guía de carga diferida de Next.js](../../node_modules/next/dist/docs/01-app/02-guides/lazy-loading.md)), y con `fetch` desde `public/`. La guía de la [carpeta public](../../node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/public-folder.md) indica `Cache-Control: public, max-age=0`, de modo que el navegador los vuelve a validar en cada visita. Para una aplicación local, ese costo es aceptable.
 
@@ -83,13 +85,13 @@ Medí el texto real de las lecciones: 9796 palabras de `scenario_phases`, `chapt
 | Empieza con mayúscula en medio de una oración | `Priya`, `Jira`, `Datadog` |
 | Está en la lista de términos permitidos | `standup`, `backend` |
 
-**Lista inicial de términos permitidos**, sin distinguir mayúsculas y tomada de la medición: `handoff`, `counterproposal`, `runbook`, `async`, `standup`, `config`, `mortem`, `backend`, `changelog`, `microservices`, `failover`, `dev`, `api`, `frontend`, `env`, `timezones`, `cancelled`, y además `hotfix`, `repo` y `codebase`, que el diccionario tampoco reconoce.
+**Lista inicial de términos permitidos**, sin distinguir mayúsculas y tomada de la medición: `handoff`, `counterproposal`, `runbook`, `async`, `standup`, `config`, `mortem`, `backend`, `changelog`, `microservices`, `failover`, `dev`, `api`, `frontend`, `env`, `timezones`, `cancelled`, y además `hotfix`, `repo` y `codebase`, que el diccionario tampoco reconoce. T012 añadió los nombres de las lecciones, para cuando van al inicio de una oración: `priya`, `raj`, `sharma`, `jira` y `datadog`.
 
 Las partes de una palabra con guion se revisan por separado, y se aceptan prefijos cortos como `de` en `de-escalate`.
 
-**Lo que sí sigue marcado**: `builded` y `tuesday` en minúscula, que son errores reales.
+**Lo que sí sigue marcado en las lecciones (T012)**: `builded` y `tuesday` en minúscula, que son errores reales, e `ing`, de textos sobre el sufijo `-ing`.
 
-**Límite conocido**: un nombre propio al inicio de una oración (por ejemplo, `Priya said…`) se marca, porque ahí la mayúscula no indica que sea un nombre. No hay opción de "ignorar" ni de "agregar al diccionario", porque la spec no la pide. Es poco frecuente y no bloquea nada.
+**Límite conocido**: un nombre propio que no esté en la lista y vaya al inicio de una oración (por ejemplo, `Maria said…`, si el diccionario no lo conoce) se marca, porque ahí la mayúscula no indica que sea un nombre. No hay opción de "ignorar" ni de "agregar al diccionario", porque la spec no la pide. Es poco frecuente y no bloquea nada.
 
 ## 5. Cómo se marca en rojo sin mover el cursor
 

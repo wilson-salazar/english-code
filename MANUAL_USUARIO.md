@@ -29,12 +29,13 @@ internet). Para usarla:
 
 ## El Dashboard
 
-Al entrar verás tres vistas:
+Al entrar verás estas vistas, entre otras:
 
 - **Learning**: la lista de escenarios (lecciones) de tu nivel, en orden. Cada
   escenario se desbloquea al completar el anterior. Aquí también ves tu
   progreso y tu puntaje por escenario.
 - **Talk**: conversaciones libres por voz con la IA (ver más abajo).
+- **Tools**: herramientas de ayuda para tu trabajo en inglés (ver más abajo).
 - **Progress**: tus estadísticas — escenarios completados, palabras
   aprendidas, promedio de vocabulario, claridad y naturalidad, y racha de
   días activo.
@@ -69,6 +70,15 @@ Desde la vista "Talk" del dashboard puedes tener una conversación por voz con
 la IA usando hasta 10 de tus palabras guardadas. La IA elige un tema, ustedes
 conversan por turnos (hasta 5 turnos tuyos) y al final recibes un resumen con
 tus fortalezas, qué mejorar y un siguiente paso sugerido.
+
+## Tools: Writing Assistant
+
+Abre **Tools** en el dashboard y luego **Writing Assistant** para corregir un texto en inglés antes de enviarlo.
+
+- **Palabras mal escritas**: salen en rojo al terminar de escribirlas. Haz clic derecho sobre una para ver las opciones correctas, o usa **Fix all** para corregirlas todas de una vez. **Undo** recupera tu texto como estaba.
+- **Redacción**: pulsa **Check sentence meaning** para revisar si tu oración o párrafo está bien redactado. Si se puede mejorar, verás la versión recomendada en otro cuadro, y podrás copiarla con **Copy recommendation**. Si ya está bien, solo te lo indicará.
+
+El texto no se guarda: se pierde al salir de la página.
 
 ## Lista de vocabulario personal
 
