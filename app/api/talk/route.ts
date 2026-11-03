@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import {
+  exceedsLength,
+  guardRequest,
+  invalidRequestResponse,
+  isOptionalText,
+  isOptionalTextArray,
+  tooLargeResponse,
+} from '@/lib/api-guard'
+
+const MAX_BODY_BYTES = 1024 * 1024
+const MAX_MESSAGE_LENGTH = 5000
 
 interface ChatMessage {
   role: 'assistant' | 'user'
@@ -59,7 +70,16 @@ function hasValidFeedback(result: TalkResult) {
   )
 }
 
+function isValidHistory(history: unknown) {
+  return history === undefined || (Array.isArray(history) && history.every(item =>
+    typeof item === 'object' && item !== null && typeof item.content === 'string'
+  ))
+}
+
 export async function POST(request: NextRequest) {
+  const guard = await guardRequest(request, { maxBodyBytes: MAX_BODY_BYTES })
+  if (!guard.ok) return guard.response
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
       { error: 'Talk with AI requires ANTHROPIC_API_KEY in .env.local.' },
@@ -67,7 +87,25 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const body = await request.json() as TalkRequest
+  const body = guard.body as unknown as TalkRequest
+  if (
+    !isOptionalTextArray(body.vocabulary)
+    || !isOptionalTextArray(body.previousTopics)
+    || !isOptionalText(body.level)
+    || !isValidHistory(body.history)
+  ) {
+    return invalidRequestResponse()
+  }
+  // Older messages keep being trimmed below, but the learner's newest answer must not be cut silently.
+  const latestAnswer = body.history?.findLast(item => item.role === 'user')?.content
+  if (
+    exceedsLength(body.vocabulary, 120)
+    || exceedsLength(body.previousTopics, 200)
+    || exceedsLength(latestAnswer, MAX_MESSAGE_LENGTH)
+  ) {
+    return tooLargeResponse()
+  }
+
   const vocabulary = (body.vocabulary ?? [])
     .map(term => term.trim())
     .filter(Boolean)
@@ -131,7 +169,7 @@ Choose a clearly different subject. Return exactly this JSON shape:
       const history = (body.history ?? [])
         .filter(item => (item.role === 'assistant' || item.role === 'user') && item.content?.trim())
         .slice(-20)
-        .map(item => ({ role: item.role, content: item.content.slice(0, 5000) }))
+        .map(item => ({ role: item.role, content: item.content.slice(0, MAX_MESSAGE_LENGTH) }))
         .filter((item, index, items) => {
           const previous = items[index - 1]
           return !previous || previous.role !== item.role || previous.content !== item.content
@@ -173,7 +211,7 @@ Return exactly: {"message":"your next turn","words_used":["saved terms actually 
       const history = (body.history ?? [])
         .filter(item => (item.role === 'assistant' || item.role === 'user') && item.content?.trim())
         .slice(-20)
-        .map(item => ({ role: item.role, content: item.content.slice(0, 5000) }))
+        .map(item => ({ role: item.role, content: item.content.slice(0, MAX_MESSAGE_LENGTH) }))
 
       const userTurns = history.filter(item => item.role === 'user')
       if (userTurns.length === 0) {

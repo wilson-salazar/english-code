@@ -34,7 +34,7 @@ covers things a coding assistant needs to know *while working in the code*.
 
 ## Key structure
 
-- `app/page.tsx` — auth (login/signup/forgot password), then routes to `/dashboard`.
+- `app/page.tsx` — auth (login/forgot password; sign-ups are closed, single-user app), then routes to `/dashboard`.
 - `app/dashboard/page.tsx` — scenario list, progress stats, level switcher, entry point to Talk with AI.
 - `app/scenario/[id]/page.tsx` — renders the phase sequence for one scenario, one phase component at a time.
 - `components/phases/*.tsx` — one component per phase type (`ImmersionPhase`, `ListeningPhase`, `ComprehensionPhase`, `SpeakingPhase`, `ExpressionPhase`). Phase content comes from `scenarios`/`scenario_phases` tables as JSON (see `lib/content.ts` for parsing helpers).
@@ -48,6 +48,7 @@ covers things a coding assistant needs to know *while working in the code*.
 - No comments unless explaining a non-obvious *why*.
 - Phase components receive parsed JSON content as props and call `onComplete()` when the user finishes — don't change that contract without updating `app/scenario/[id]/page.tsx`.
 - TTS calls always go through `/api/tts` with `{ text, speaker: 'male' | 'female' }` — never call ElevenLabs directly from a component.
+- Every API route that spends provider credits starts with `guardRequest` from `lib/api-guard.ts`, and the client calls it with `postJson` from `lib/api.ts`, never with a bare `fetch`.
 - Local Supabase credentials (from `npx supabase status`) are dev-only; never reuse them or the hosted project's service-role key in client code.
 - **Never wipe database data.** Do not run `npm run db:reset` / `supabase db reset` on a local DB that holds a real account (it destroys users, progress and saved words, and cannot be undone). Apply new migrations and seeds incrementally with `psql` (`PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -v ON_ERROR_STOP=1 -f <file>.sql`), and write seeds as additive inserts only. Seed files use one `do $$ ... $$` block per chapter.
 - This repo is public (`github.com/wilson-salazar/english-code`) under the owner's personal GitHub account — don't add anything Simetrik-related, and never commit real API keys (`.env.local` is gitignored; only `.env.example` should ever be tracked).

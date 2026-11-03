@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { postJson } from '@/lib/api'
 
 interface SpeakingContent {
   prompt: string
@@ -38,6 +39,7 @@ export default function SpeakingPhase({ content, scenarioTitle, onComplete }: Pr
   const [transcript, setTranscript] = useState('')
   const [feedback, setFeedback] = useState<SpeakingFeedback | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [showExample, setShowExample] = useState(false)
   const [notSupported, setNotSupported] = useState(false)
   const recognitionRef = useRef<SpeechRecognitionType>(null)
@@ -82,17 +84,18 @@ export default function SpeakingPhase({ content, scenarioTitle, onComplete }: Pr
   async function handleSubmit() {
     if (!transcript.trim()) return
     setLoading(true)
+    setError('')
 
     try {
-      const res = await fetch('/api/evaluate-speech', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript, scenarioTitle, prompt }),
-      })
-      const data = await res.json()
-      setFeedback(data)
+      const res = await postJson('/api/evaluate-speech', { transcript, scenarioTitle, prompt })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.scores) {
+        setError(data.error ?? 'Your feedback could not be generated. Please try again.')
+      } else {
+        setFeedback(data)
+      }
     } catch {
-      // silently fail
+      setError('Could not reach the server. Check your connection and try again.')
     }
 
     setLoading(false)
@@ -100,6 +103,7 @@ export default function SpeakingPhase({ content, scenarioTitle, onComplete }: Pr
 
   function handleRetry() {
     setFeedback(null)
+    setError('')
     setTranscript('')
     setRecordState('idle')
     setShowExample(false)
@@ -230,6 +234,8 @@ export default function SpeakingPhase({ content, scenarioTitle, onComplete }: Pr
               {loading ? 'Evaluating...' : 'Get feedback'}
             </button>
           )}
+
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         </div>
       )}
 

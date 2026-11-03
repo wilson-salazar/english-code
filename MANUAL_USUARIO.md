@@ -18,12 +18,14 @@ internet). Para usarla:
 
 ## Primeros pasos
 
-1. **Crear una cuenta**: en la pantalla de inicio, toca "Create one", ingresa
-   tu nombre, correo y una contraseña de al menos 8 caracteres.
-2. **Elige tu nivel de inglés**: A2 (básico), B1 (pre-intermedio), B2
-   (intermedio) o C1 (avanzado). Puedes cambiarlo después desde el dashboard.
-3. Si ya tienes cuenta, inicia sesión con "Sign in". Si olvidaste tu
-   contraseña, usa "Forgot password?" para recibir un enlace de recuperación.
+1. **Inicia sesión** con tu correo y contraseña en "Sign in". La aplicación es
+   de uso personal y no permite crear cuentas nuevas desde la pantalla de inicio;
+   en una instalación nueva, la cuenta se crea como explica el
+   [README.md](./README.md).
+2. **Elige tu nivel de inglés** desde el dashboard: A2 (básico), B1
+   (pre-intermedio), B2 (intermedio) o C1 (avanzado).
+3. Si olvidaste tu contraseña, usa "Forgot password?" para recibir un enlace de
+   recuperación.
 
 ## El Dashboard
 

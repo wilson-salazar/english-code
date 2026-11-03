@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { postJson } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 
 interface PersonalTerm {
@@ -82,10 +83,8 @@ export default function FloatingVocabulary() {
       missingMeanings.forEach(item => translationsInProgressRef.current.add(item.id))
       void (async () => {
         try {
-          const response = await fetch('/api/vocabulary/translate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ terms: missingMeanings.map(item => item.term) }),
+          const response = await postJson('/api/vocabulary/translate', {
+            terms: missingMeanings.map(item => item.term),
           })
           const result = await response.json() as TranslationResponse
           if (!response.ok || !result.translations) return
