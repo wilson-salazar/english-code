@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { postJson } from '@/lib/api'
 import { parseJsonArray } from '@/lib/content'
 
 interface DialogueLine {
@@ -24,11 +25,7 @@ function getGender(speakerIndex: number): 'female' | 'male' {
 }
 
 async function fetchAudio(text: string, speaker: 'female' | 'male'): Promise<HTMLAudioElement | null> {
-  const res = await fetch('/api/tts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, speaker }),
-  })
+  const res = await postJson('/api/tts', { text, speaker })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     console.error('TTS fetch failed:', err)

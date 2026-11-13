@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { postJson } from '@/lib/api'
 import { parseJsonArray } from '@/lib/content'
 
 interface Rule {
@@ -27,11 +28,7 @@ const audioCache = new Map<string, HTMLAudioElement>()
 async function fetchAudio(text: string): Promise<HTMLAudioElement | null> {
   if (audioCache.has(text)) return audioCache.get(text)!
   try {
-    const res = await fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, speaker: 'female' }),
-    })
+    const res = await postJson('/api/tts', { text, speaker: 'female' })
     if (!res.ok) return null
     const blob = await res.blob()
     if (blob.size === 0) return null

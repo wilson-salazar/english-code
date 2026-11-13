@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { postJson } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 
 interface ExpressionContent {
@@ -35,20 +36,23 @@ export default function ExpressionPhase({ content, scenarioTitle, phaseId, userI
   const [response, setResponse] = useState('')
   const [feedback, setFeedback] = useState<AIFeedback | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(1)
 
   async function handleSubmit() {
     if (!response.trim()) return
     setLoading(true)
+    setError('')
 
     try {
-      const res = await fetch('/api/evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ response, scenarioTitle, prompt }),
-      })
+      const res = await postJson('/api/evaluate', { response, scenarioTitle, prompt })
 
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.scores) {
+        setError(data.error ?? 'Your feedback could not be generated. Please try again.')
+        setLoading(false)
+        return
+      }
       setFeedback(data)
 
       // Save response + feedback to DB
@@ -80,7 +84,7 @@ export default function ExpressionPhase({ content, scenarioTitle, phaseId, userI
       void avg
 
     } catch {
-      // silently fail — user can retry
+      setError('Could not reach the server. Check your connection and try again.')
     }
 
     setLoading(false)
@@ -129,6 +133,7 @@ export default function ExpressionPhase({ content, scenarioTitle, phaseId, userI
           >
             {loading ? 'Evaluating...' : 'Submit for feedback'}
           </button>
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         </div>
       )}
 

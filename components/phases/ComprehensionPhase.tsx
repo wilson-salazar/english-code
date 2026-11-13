@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { postJson } from '@/lib/api'
 import { parseJsonArray } from '@/lib/content'
 
 interface Question {
@@ -41,11 +42,7 @@ export default function ComprehensionPhase({ content, onComplete }: Props) {
     if (!audio) {
       setLoadingIdx(i)
       try {
-        const res = await fetch('/api/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: questions[i].question, speaker: 'female' }),
-        })
+        const res = await postJson('/api/tts', { text: questions[i].question, speaker: 'female' })
         if (!res.ok) {
           console.error('TTS fetch failed:', await res.json().catch(() => ({})))
           return

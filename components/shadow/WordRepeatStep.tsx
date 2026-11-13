@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { postJson } from '@/lib/api'
 import { wordMatches } from '@/lib/shadow'
 
 interface WordAttemptRecord {
@@ -37,11 +38,7 @@ export default function WordRepeatStep({ word, wordIndex, totalWords, onResolved
   const playWord = useCallback(async (playbackRate: number) => {
     setIsPlaying(true)
     try {
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: word, speaker: 'female' }),
-      })
+      const response = await postJson('/api/tts', { text: word, speaker: 'female' })
       if (!response.ok) throw new Error('TTS unavailable')
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)

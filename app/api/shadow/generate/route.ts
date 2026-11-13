@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import {
+  exceedsLength,
+  guardRequest,
+  invalidRequestResponse,
+  isOptionalText,
+  isOptionalTextArray,
+  tooLargeResponse,
+} from '@/lib/api-guard'
+
+const MAX_BODY_BYTES = 32 * 1024
 
 interface ShadowGenerateRequest {
   level?: string
@@ -25,6 +35,9 @@ function parseModelJson(text: string): ShadowGenerateResult {
 }
 
 export async function POST(request: NextRequest) {
+  const guard = await guardRequest(request, { maxBodyBytes: MAX_BODY_BYTES })
+  if (!guard.ok) return guard.response
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
       { error: 'Shadowing requires ANTHROPIC_API_KEY in .env.local.' },
@@ -32,7 +45,16 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const body = await request.json() as ShadowGenerateRequest
+  const body = guard.body as ShadowGenerateRequest
+  if (
+    !isOptionalText(body.level)
+    || !isOptionalText(body.previousTopic)
+    || !isOptionalTextArray(body.recentSentences)
+  ) {
+    return invalidRequestResponse()
+  }
+  if (exceedsLength(body.recentSentences, 500)) return tooLargeResponse()
+
   const level = (body.level ?? 'B1').slice(0, 10)
   const recentSentences = (body.recentSentences ?? [])
     .map(sentence => sentence.trim())
