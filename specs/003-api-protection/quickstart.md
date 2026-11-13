@@ -7,10 +7,10 @@ Pasos para comprobar la spec ([spec.md](./spec.md)) de principio a fin. No susti
 | Escenario | Estado | Quién | Lo comprobado |
 |---|---|---|---|
 | 1. Sin sesión | Verificado | Claude | Las 7 rutas responden 401 sin token y con un token inventado |
-| 2. Con sesión | Parcial | Dueño, con registros revisados por Claude | `/api/talk`, `/api/tts` y `/api/shadow/generate` responden 200 y Talk guarda los mensajes. El dueño informó que todo está bien, pero no hay rastro de evaluaciones ni de palabras nuevas (T030) |
+| 2. Con sesión | Verificado (2026-11-11) | Dueño, con registros revisados por Claude | Se guardaron una respuesta de lección y una de capítulo, con retroalimentación y puntajes, y se actualizó el progreso de ambos. Se guardaron 2 palabras con su significado en español, ejercicios de Shadowing y conversaciones de Talk en los dos modos. Los audios, Speaking y la retroalimentación final de Talk no dejan rastro en la base: se apoyan en el informe del dueño (T030) |
 | 3. Sesión vencida | Parcial | Claude | El aviso aparece una sola vez al simular el evento. La sesión se renovó sola una hora después de iniciar sesión, con la configuración final. Sin rastro de una prueba del formulario del aviso (T031) |
 | 4. Entradas grandes | Pendiente | Dueño | T040 |
-| 5. Registro cerrado | Parcial | Claude | Registro y sesión anónima rechazados, conteos iguales en dos reinicios y `auth.users` en 1. El dueño inició sesión con su contraseña (confirmado en el registro) e informó que todo está bien. El buzón local no tiene ningún correo de recuperación (T058) |
+| 5. Registro cerrado | Verificado (2026-11-12) | Claude y dueño | Registro y sesión anónima rechazados, conteos iguales en dos reinicios y `auth.users` en 1. El dueño inició sesión con su contraseña y confirmó su progreso y sus palabras. Los dos correos de recuperación llegaron al buzón local, sin cambiar la contraseña (T058) |
 | 6. Solo en el equipo | Parcial | Claude | Pasos 1 a 3: `127.0.0.1:3000`, `localhost` responde, recarga en caliente sin recargar la página y sin advertencias de origen. Desde el propio Mac, la IP de red no conecta. El dueño vio "no se puede conectar al servidor" en el iPhone, sin confirmar en qué dirección ni desde qué red. El arranque automático no está instalado (T063) |
 | 7. Errores internos | Pendiente | Dueño | T047 |
 | Dependencia: base en la red | Mitigada sin comprobar, prueba aplazada por el dueño | Claude | El firewall ya está activo, pero el puerto 54323 sigue escuchando en `*`. No se comprobó si un equipo de la red llega a él (T064) |

@@ -119,7 +119,7 @@ Aplicar `guardRequest` como primer paso de cada ruta, reemplazando `request.json
 **Verificación**
 
 - [X] T029 [US2] Correr `npx tsc --noEmit` y `npm run lint` (Principio VI)
-- [ ] T030 [US2] **[Usuario]** Ejecutar el escenario 2 de [quickstart.md](./quickstart.md): un flujo de lecciones, capítulos, Shadowing, Talk with AI y vocabulario, sin pasos nuevos y sin notar lentitud (FR-006, SC-002)
+- [X] T030 [US2] **[Usuario]** Ejecutar el escenario 2 de [quickstart.md](./quickstart.md): un flujo de lecciones, capítulos, Shadowing, Talk with AI y vocabulario, sin pasos nuevos y sin notar lentitud (FR-006, SC-002). Hecho el 2026-11-11: el dueño informó que todo funciona, y los registros confirman la respuesta de lección y la de capítulo con su retroalimentación, el progreso, 2 palabras con su significado, Shadowing y Talk en los dos modos. Los audios y Speaking no dejan rastro y se apoyan en su informe
 - [ ] T031 [US2] **[Usuario]** Ejecutar el escenario 3 de [quickstart.md](./quickstart.md): sesión vencida en una evaluación, en Talk y en audio, con un solo aviso y lo escrito intacto; y renovación pasada una hora (FR-007, FR-008, FR-009, SC-008)
 
 **Punto de control**: la protección no rompió el uso diario.
@@ -196,7 +196,7 @@ Validar tipo y tamaño, y responder con los helpers de T018. Los valores salen d
 **Verificación**
 
 - [X] T057 [US3] Correr `npx tsc --noEmit` y `npm run lint`; abrir la pantalla de inicio y confirmar que no ofrece el registro (FR-016)
-- [ ] T058 [US3] **[Usuario]** Iniciar sesión con su cuenta, comprobar su progreso y sus palabras guardadas, y pedir el correo de restablecimiento en el buzón local, sin cambiar la contraseña si no quiere (FR-017, FR-018, SC-006)
+- [X] T058 [US3] **[Usuario]** Iniciar sesión con su cuenta, comprobar su progreso y sus palabras guardadas, y pedir el correo de restablecimiento en el buzón local, sin cambiar la contraseña si no quiere (FR-017, FR-018, SC-006). Hecho el 2026-11-12: el dueño inició sesión y confirmó su progreso y sus palabras. Las dos solicitudes de recuperación respondieron 200 y los dos correos llegaron al buzón local. La contraseña no se cambió
 
 **Punto de control**: solo la cuenta del dueño puede obtener una sesión.
 
