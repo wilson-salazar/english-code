@@ -35,3 +35,4 @@
 - La "dirección propia" de cada sección (FR-004) describe lo que ve el estudiante, que puede recargar sin perder la sección; no fija cómo se implementa.
 - La confirmación al salir con trabajo sin guardar es decisión del dueño, del 2026-11-13.
 - El dueño confirmó el 2026-11-13 los dos supuestos abiertos: las opciones de cuenta (cambiar de nivel y cerrar sesión) acompañan al menú en todas las pantallas, y el avance entre fases no cuenta como trabajo sin guardar.
+- Durante el plan (2026-11-13) se precisó FR-012 y su caso límite: solo cuentan las peticiones con el trabajo del estudiante, y Talk cuenta como empezado desde su primera respuesta, para cumplir SC-003. Ver [research §5](../research.md).

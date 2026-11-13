@@ -65,7 +65,8 @@ Como estudiante, quiero que cada pantalla interna muestre una ruta de migas, com
 
 ### Casos límite
 
-- **Una petición en curso** (una evaluación, una respuesta de la IA o un audio que se está generando): cuenta como trabajo sin guardar, porque su resultado se perdería al salir.
+- **Una petición en curso con el trabajo del estudiante** (la evaluación de su respuesta, la réplica de la IA a su mensaje o el guardado de su resultado): cuenta como trabajo sin guardar, porque su resultado se perdería al salir. Generar un audio, el tema de Talk o la oración de Shadowing no cuenta, porque no se pierde nada del estudiante.
+- **Talk recién abierto**: el tema y el primer mensaje de la IA se generan solos al entrar. La conversación cuenta como empezada desde la primera respuesta del estudiante.
 - **Pulsar la entrada de la sección actual desde dentro de un módulo** (por ejemplo, Learning path dentro de una lección): es salir del módulo hacia su lista, con la misma confirmación si hay trabajo pendiente.
 - **Pulsar la sección en la que ya se está, en la lista de la sección**: no pasa nada.
 - **Grabación en curso al aparecer la pregunta**: si el estudiante elige quedarse, la grabación sigue intacta; si elige salir, se detiene y se descarta, y el micrófono se libera.
@@ -101,8 +102,8 @@ Como estudiante, quiero que cada pantalla interna muestre una ruta de migas, com
 - **FR-012**: Se considera trabajo sin guardar:
   - un texto escrito en un cuadro de respuesta y no enviado, en una lección, un capítulo o Talk with AI;
   - una grabación en curso, o grabada y no enviada;
-  - una petición en curso cuyo resultado aún no se ha guardado;
-  - una conversación de Talk with AI empezada, hasta que se pide su retroalimentación final;
+  - una petición en curso con el trabajo del estudiante, cuyo resultado aún no se ha guardado;
+  - una conversación de Talk with AI con al menos una respuesta del estudiante, hasta que recibe su retroalimentación final;
   - un ejercicio de Shadowing empezado y no terminado;
   - cualquier texto en el Writing Assistant, porque nunca se guarda.
 - **FR-013**: Sin trabajo sin guardar, la aplicación NO DEBE pedir confirmación.
