@@ -1,0 +1,46 @@
+// Everyday terms for developers and QA engineers that the dictionary does not know,
+// plus the people and products that appear in the lessons.
+export const ALLOWED_TERMS = new Set([
+  'api',
+  'async',
+  'backend',
+  'cancelled',
+  'changelog',
+  'codebase',
+  'config',
+  'counterproposal',
+  'datadog',
+  'dev',
+  'env',
+  'failover',
+  'frontend',
+  'handoff',
+  'hotfix',
+  'jira',
+  'microservices',
+  'mortem',
+  'priya',
+  'raj',
+  'repo',
+  'runbook',
+  'sharma',
+  'standup',
+  'timezones',
+])
+
+export const HYPHEN_PREFIXES = new Set(['co', 'de', 'ex', 'non', 'pre', 're'])
+
+export const MISSING_APOSTROPHES: Record<string, string> = {
+  arent: "aren't",
+  couldnt: "couldn't",
+  didnt: "didn't",
+  doesnt: "doesn't",
+  dont: "don't",
+  im: "I'm",
+  isnt: "isn't",
+  ive: "I've",
+  shouldnt: "shouldn't",
+  wasnt: "wasn't",
+  werent: "weren't",
+  wouldnt: "wouldn't",
+}

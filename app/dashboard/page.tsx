@@ -48,7 +48,18 @@ interface Stats {
   shadowExercisesCompleted: number
 }
 
-type DashboardView = 'learning' | 'grammar' | 'talk' | 'shadow' | 'progress'
+type DashboardView = 'learning' | 'grammar' | 'talk' | 'shadow' | 'tools' | 'progress'
+
+const TOOLS = [
+  {
+    id: 'writing-assistant',
+    eyebrow: 'Writing',
+    title: 'Writing Assistant',
+    description: 'Fix misspelled words as you type and check whether your sentences sound natural in English.',
+    action: 'Open Writing Assistant →',
+    href: '/tools/writing-assistant',
+  },
+]
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -333,6 +344,7 @@ export default function DashboardPage() {
               { id: 'grammar', label: 'Grammar', description: 'Core grammar chapters' },
               { id: 'talk', label: 'Talk with AI', description: 'Voice conversation' },
               { id: 'shadow', label: 'Shadowing', description: 'Pronunciation practice' },
+              { id: 'tools', label: 'Tools', description: 'Writing and more' },
               { id: 'progress', label: 'Progress', description: 'KPIs and skills' },
             ] as Array<{ id: DashboardView; label: string; description: string }>).map(item => {
               const isActive = activeView === item.id
@@ -430,6 +442,37 @@ export default function DashboardPage() {
               Start shadowing →
             </button>
           </article>
+        </section>
+        )}
+
+        {activeView === 'tools' && (
+        <section>
+          <div className="mb-5">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Everyday help</div>
+            <h1 className="mt-1 text-2xl font-bold text-slate-100">Tools</h1>
+            <p className="mt-1 text-sm text-slate-400">Practical helpers for your work in English.</p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            {TOOLS.map(tool => (
+              <article
+                key={tool.id}
+                className="flex min-h-64 flex-col justify-between rounded-3xl border border-indigo-400/25 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-xl shadow-black/20"
+              >
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">{tool.eyebrow}</div>
+                  <h2 className="mt-3 text-xl font-bold">{tool.title}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-300">{tool.description}</p>
+                </div>
+                <button
+                  onClick={() => router.push(tool.href)}
+                  className="mt-6 w-fit rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 transition-all hover:-translate-y-0.5 hover:bg-cyan-300"
+                >
+                  {tool.action}
+                </button>
+              </article>
+            ))}
+          </div>
         </section>
         )}
 
