@@ -33,9 +33,9 @@ No hay cambios de base de datos. Las decisiones y sus mediciones están en [rese
 
 **Alcance**: 1 módulo nuevo, 1 página, 1 ruta de API, y un único usuario.
 
-## Dependencia: 003 sin fusionar
+## Dependencia: 003
 
-Esta rama parte de `003-api-protection-implement`, porque necesita `guardRequest`, `postJson` y `SessionNotice`, que aún no están en `main`. Hay que fusionar 003 antes que 004, o el PR de 004 mostrará también todos los cambios de 003.
+Esta rama parte de `003-api-protection-implement`, porque necesita `guardRequest`, `postJson` y `SessionNotice`. 003 se fusionó en `main` el 2026-11-12, y esta rama ya incluye esa versión de `main`.
 
 ## Constitution Check
 
