@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { postJson } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
+import { useUnsavedWork } from '@/components/navigation/NavigationGuard'
 
 interface ExpressionContent {
   prompt: string
@@ -38,6 +39,9 @@ export default function ExpressionPhase({ content, scenarioTitle, phaseId, userI
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(1)
+
+  // The answer box is hidden once feedback arrives, so a non-empty answer without feedback is unsent.
+  useUnsavedWork(loading || (!feedback && response.trim() !== ''))
 
   async function handleSubmit() {
     if (!response.trim()) return

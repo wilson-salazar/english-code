@@ -2,6 +2,18 @@
 
 Pasos para comprobar la spec ([spec.md](./spec.md)) de principio a fin. No sustituye al Principio VI: `npx tsc --noEmit`, `npm run lint` y `npm run build`, obligatorio porque se mueven rutas.
 
+## Estado de la verificación (2026-11-13)
+
+| Escenario | Estado | Quién | Lo comprobado |
+|---|---|---|---|
+| 1. El menú en todas las pantallas | Verificado | Dueño, con registros revisados por Claude | Todas las pantallas abiertas, recargas completas y la sección conservada en Grammar. Sin sesión, `/`, `/reset-password` y `/dashboard?section=grammar` no muestran el menú (T040, T042) |
+| 2. Preguntar antes de perder trabajo | Verificado | Dueño | La pregunta en el Writing Assistant, "Stay", "Leave", "Log out" y el aviso al recargar. El diálogo no deja rastro en los registros (T043) |
+| 3. Salir sin preguntas | Verificado | Dueño | Talk recién abierto y Shadowing en su pantalla inicial salen sin preguntar (T043) |
+| 4. Audio y micrófono al salir | Verificado | Dueño, con registros revisados por Claude | El diálogo de Listening se detiene al salir por el menú (T044) |
+| 5. Ruta de migas | Verificado | Dueño | Ruta de migas en cada módulo y "← Back" desde la segunda fase. El destino al terminar una lección o un capítulo no se probó aparte (T042) |
+| 6. Todo sigue igual | Parcial | Dueño | La barra de Talk no tapa el menú, y se corrigió su solapamiento con el cuadro de vocabulario. Sin verificar: enviar una respuesta en Talk con el desplazamiento automático, y el cambio de nivel desde una lección (T045) |
+| 7. Sin cambios en los datos | Verificado | Claude | Los conteos solo cambian por uso real: 6 temas de Talk, 1 palabra y 1 capítulo empezado (T046) |
+
 ## Prerrequisitos
 
 - Supabase local corriendo (`npm run db:start`), **nunca** `db:reset`.

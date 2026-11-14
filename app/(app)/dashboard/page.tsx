@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState, useEffect, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useAccount } from '@/components/navigation/AppShell'
+import { parseSection } from '@/components/navigation/sections'
 
 interface Scenario {
   id: string
@@ -13,12 +15,6 @@ interface Scenario {
   score: number | null
 }
 
-interface User {
-  id: string
-  full_name: string
-  levels: { id: string; code: string; name: string } | null
-}
-
 interface Chapter {
   id: string
   title: string
@@ -26,12 +22,6 @@ interface Chapter {
   order_index: number
   status: 'locked' | 'in_progress' | 'completed'
   score: number | null
-}
-
-interface LevelOption {
-  id: string
-  code: string
-  name: string
 }
 
 interface Stats {
@@ -48,8 +38,6 @@ interface Stats {
   shadowExercisesCompleted: number
 }
 
-type DashboardView = 'learning' | 'grammar' | 'talk' | 'shadow' | 'tools' | 'progress'
-
 const TOOLS = [
   {
     id: 'writing-assistant',
@@ -62,52 +50,36 @@ const TOOLS = [
 ]
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <Dashboard />
+    </Suspense>
+  )
+}
+
+function DashboardLoading() {
+  return (
+    <div className="learning-theme flex items-center justify-center py-24">
+      <div className="text-slate-400 text-sm">Loading your path...</div>
+    </div>
+  )
+}
+
+function Dashboard() {
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
+  const { user } = useAccount()
+  const activeView = parseSection(useSearchParams().get('section'))
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [availableLevels, setAvailableLevels] = useState<LevelOption[]>([])
-  const [showLevelPicker, setShowLevelPicker] = useState(false)
-  const [updatingLevel, setUpdatingLevel] = useState(false)
-  const [signingOut, setSigningOut] = useState(false)
-  const [activeView, setActiveView] = useState<DashboardView>('learning')
+
+  const userId = user.id
+  const levelId = user.levels?.id
 
   const loadData = useCallback(async () => {
-    const { data: { user: authUser } } = await supabase.auth.getUser()
-    if (!authUser) {
-      setLoading(false)
-      router.replace('/')
-      return
-    }
-
-    const { data: levelOptions } = await supabase
-      .from('levels')
-      .select('id, code, name')
-      .order('order_index')
-    setAvailableLevels(levelOptions ?? [])
-
-    const { data: userData } = await supabase
-      .from('users')
-      .select('id, full_name, levels(id, code, name)')
-      .eq('auth_user_id', authUser.id)
-      .single()
-
-    if (!userData) {
-      await supabase.auth.signOut()
-      setLoading(false)
-      router.replace('/')
-      return
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setUser(userData as any)
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const levelId = (userData.levels as any)?.id
     if (!levelId) { setLoading(false); return }
 
-    const userId = userData.id
 
     const [{ data: scenarioList }, { data: progressList }, { data: responses }, { data: chapterList }, { data: chapterProgressList }, { count: shadowExercisesCompleted }] = await Promise.all([
       supabase.from('scenarios').select('id, title, context, order_index').eq('level_id', levelId).eq('is_published', true).order('order_index'),
@@ -209,7 +181,7 @@ export default function DashboardPage() {
     })
 
     setLoading(false)
-  }, [router])
+  }, [levelId, userId])
 
   useEffect(() => {
     async function initializeDashboard() {
@@ -219,157 +191,13 @@ export default function DashboardPage() {
     void initializeDashboard()
   }, [loadData])
 
-  async function handleSignOut() {
-    setSigningOut(true)
-    const { error } = await supabase.auth.signOut()
-
-    if (error) {
-      setSigningOut(false)
-      return
-    }
-
-    router.replace('/')
-    router.refresh()
-  }
-
-  async function handleLevelChange(level: LevelOption) {
-    if (!user || user.levels?.id === level.id) {
-      setShowLevelPicker(false)
-      return
-    }
-
-    setUpdatingLevel(true)
-    const { error } = await supabase
-      .from('users')
-      .update({ level_id: level.id })
-      .eq('id', user.id)
-
-    if (!error) {
-      setShowLevelPicker(false)
-      setLoading(true)
-      await loadData()
-    }
-    setUpdatingLevel(false)
-  }
-
-  if (loading) {
-    return (
-      <div className="learning-theme min-h-screen flex items-center justify-center">
-        <div className="text-slate-400 text-sm">Loading your path...</div>
-      </div>
-    )
-  }
+  if (loading) return <DashboardLoading />
 
   const completed = scenarios.filter(s => s.status === 'completed').length
   const total = scenarios.length
 
   return (
-    <div className="learning-theme min-h-screen bg-slate-950 text-slate-100">
-      {/* Top bar */}
-      <header className="relative border-b border-white/10 bg-slate-950/90 px-6 py-4 backdrop-blur">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-base font-bold text-[#41c300]">{'</>'}</span>
-            <span className="text-gray-400 font-mono text-sm">English Code</span>
-          </div>
-          <div className="text-right pr-12 sm:pr-0">
-            <div className="text-sm font-semibold text-slate-100">{user?.full_name}</div>
-            <button
-              onClick={() => setShowLevelPicker(value => !value)}
-              className="text-xs text-indigo-500 hover:text-indigo-700 font-mono transition-colors"
-            >
-              {user?.levels?.code} · {user?.levels?.name} · Change
-            </button>
-          </div>
-        </div>
-        <button
-          onClick={handleSignOut}
-          disabled={signingOut}
-          aria-label="Log out"
-          className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 sm:px-3 py-2 text-xs font-medium text-slate-300 transition-colors hover:border-red-300/30 hover:bg-red-400/10 hover:text-red-200 disabled:cursor-wait disabled:opacity-60"
-        >
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 17l5-5-5-5" />
-            <path d="M15 12H3" />
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-          </svg>
-          <span className="hidden sm:inline">{signingOut ? 'Logging out...' : 'Log out'}</span>
-        </button>
-      </header>
-
-      {showLevelPicker && (
-        <div className="border-b border-white/10 bg-slate-900 px-6 py-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between gap-4 mb-3">
-              <div>
-                <div className="text-sm font-semibold text-slate-100">Choose a learning program</div>
-                <div className="mt-0.5 text-xs text-indigo-300">You can switch levels anytime. Your progress is preserved.</div>
-              </div>
-              <button
-                onClick={() => setShowLevelPicker(false)}
-                className="text-xs text-indigo-400 hover:text-indigo-600"
-              >
-                Close
-              </button>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {availableLevels.map(level => {
-                const isCurrent = user?.levels?.id === level.id
-                return (
-                  <button
-                    key={level.id}
-                    onClick={() => handleLevelChange(level)}
-                    disabled={updatingLevel}
-                    className={`rounded-xl border px-3 py-2 text-left transition-colors disabled:opacity-50 ${
-                      isCurrent
-                        ? 'border-indigo-400 bg-indigo-500/15 ring-1 ring-indigo-400'
-                        : 'border-white/10 bg-white/5 hover:border-indigo-400/50'
-                    }`}
-                  >
-                    <div className="text-xs font-mono font-bold text-indigo-600">{level.code}</div>
-                    <div className="mt-0.5 text-xs text-slate-300">{level.name}</div>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <main className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-8 md:flex-row md:items-start">
-        <aside className="w-full shrink-0 md:sticky md:top-6 md:w-56">
-          <nav aria-label="Dashboard sections" className="flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-slate-900/80 p-2 shadow-xl shadow-black/10 md:flex-col">
-            {([
-              { id: 'learning', label: 'Learning path', description: 'Lessons and scenarios' },
-              { id: 'grammar', label: 'Grammar', description: 'Core grammar chapters' },
-              { id: 'talk', label: 'Talk with AI', description: 'Voice conversation' },
-              { id: 'shadow', label: 'Shadowing', description: 'Pronunciation practice' },
-              { id: 'tools', label: 'Tools', description: 'Writing and more' },
-              { id: 'progress', label: 'Progress', description: 'KPIs and skills' },
-            ] as Array<{ id: DashboardView; label: string; description: string }>).map(item => {
-              const isActive = activeView === item.id
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveView(item.id)}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={`min-w-max rounded-xl px-4 py-3 text-left transition-colors md:min-w-0 ${
-                    isActive
-                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-950/30'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <span className="block text-sm font-semibold">{item.label}</span>
-                  <span className={`mt-0.5 hidden text-[11px] md:block ${isActive ? 'text-indigo-100' : 'text-slate-500'}`}>
-                    {item.description}
-                  </span>
-                </button>
-              )
-            })}
-          </nav>
-        </aside>
-
+    <div className="learning-theme text-slate-100">
         <div className="min-w-0 flex-1 space-y-8">
 
         {activeView === 'talk' && (
@@ -786,7 +614,6 @@ export default function DashboardPage() {
         </section>
         )}
         </div>
-      </main>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { useUnsavedWork } from '@/components/navigation/NavigationGuard'
 import { postJson } from '@/lib/api'
 import { parseJsonArray } from '@/lib/content'
 
@@ -27,6 +28,17 @@ export default function ComprehensionPhase({ content, onComplete }: Props) {
   const [loadingIdx, setLoadingIdx] = useState<number | null>(null)
   const audioCache = useRef<Map<number, HTMLAudioElement>>(new Map())
   const currentAudio = useRef<HTMLAudioElement | null>(null)
+  const activeRef = useRef(true)
+
+  useUnsavedWork(!submitted && answers.some(answer => answer.trim() !== ''))
+
+  useEffect(() => {
+    activeRef.current = true
+    return () => {
+      activeRef.current = false
+      currentAudio.current?.pause()
+    }
+  }, [])
 
   async function speakQuestion(i: number) {
     // Tapping the speaker of the line already playing stops it
@@ -55,6 +67,7 @@ export default function ComprehensionPhase({ content, onComplete }: Props) {
         setLoadingIdx(null)
       }
     }
+    if (!activeRef.current) return
 
     audio.currentTime = 0
     audio.onended = () => setSpeakingIdx(cur => (cur === i ? null : cur))

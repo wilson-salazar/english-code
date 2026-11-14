@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import Breadcrumbs from '@/components/navigation/Breadcrumbs'
 import { PERSONAL_VOCABULARY_EVENT } from '@/components/FloatingVocabulary'
+import { useUnsavedWork } from '@/components/navigation/NavigationGuard'
 import { postJson } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 
@@ -359,8 +361,9 @@ export default function TalkWithAiPage() {
   }, [])
 
   // Follow the conversation as it grows: new messages, the AI text being typed out while it
-  // speaks, the "thinking" indicator and errors. The bottom padding of <main> keeps the last
-  // line above the fixed answer bar. The feedback card has its own scroll effect below.
+  // speaks, the "thinking" indicator and errors. The answer bar is sticky inside the content
+  // column, so it takes its own space below the last line. The feedback card has its own scroll
+  // effect below.
   useEffect(() => {
     if (feedback || !stickToBottomRef.current) return
     window.scrollTo({
@@ -666,16 +669,20 @@ export default function TalkWithAiPage() {
   const userTurnCount = messages.filter(message => message.role === 'user').length
   const reachedResponseLimit = !isOpenMode && userTurnCount >= MAX_USER_TURNS
 
+  // The topic and the AI's first message arrive on their own, so the conversation only counts as
+  // unsaved work once the learner has answered.
+  useUnsavedWork(
+    recordingState === 'recording'
+    || transcript.trim() !== ''
+    || sending
+    || (userTurnCount > 0 && !conversationFinished)
+  )
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="bg-slate-950 text-white">
       <header className="border-b border-white/10 bg-slate-950/90 px-5 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="text-sm text-slate-400 transition-colors hover:text-white"
-          >
-            ← Dashboard
-          </button>
+          <Breadcrumbs section="talk" current={isOpenMode ? 'Bring any topic' : 'Practice your saved words'} />
           <div className="text-center">
             <div className="text-sm font-semibold">{isOpenMode ? 'Open conversation' : 'Talk with AI'}</div>
             <div className="text-xs text-indigo-300">
@@ -692,7 +699,7 @@ export default function TalkWithAiPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl space-y-5 px-5 py-6 pb-56">
+      <main className="mx-auto max-w-3xl space-y-5 px-5 py-6">
         <section className="overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-indigo-600/30 via-violet-600/15 to-cyan-500/10 p-6">
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
             {topicCategory || (isOpenMode ? 'Open conversation' : 'Preparing a random topic')}
@@ -882,7 +889,7 @@ export default function TalkWithAiPage() {
         </section>
       </main>
 
-      <section className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-slate-950/95 px-5 py-4 shadow-2xl shadow-black backdrop-blur">
+      <section className="sticky bottom-0 z-40 border-t border-white/10 bg-slate-950/95 px-5 py-4 shadow-2xl shadow-black backdrop-blur">
         <div className="mx-auto max-w-3xl">
           {conversationFinished ? (
             <div className="flex items-center justify-between gap-4">

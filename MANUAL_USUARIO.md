@@ -31,14 +31,33 @@ internet). Para usarla:
 
 Al entrar verás estas vistas, entre otras:
 
-- **Learning**: la lista de escenarios (lecciones) de tu nivel, en orden. Cada
+- **Learning path**: la lista de escenarios (lecciones) de tu nivel, en orden. Cada
   escenario se desbloquea al completar el anterior. Aquí también ves tu
   progreso y tu puntaje por escenario.
-- **Talk**: conversaciones libres por voz con la IA (ver más abajo).
+- **Grammar**: los capítulos de gramática de tu nivel.
+- **Talk with AI**: conversaciones libres por voz con la IA (ver más abajo).
+- **Shadowing**: práctica de pronunciación repitiendo oraciones.
 - **Tools**: herramientas de ayuda para tu trabajo en inglés (ver más abajo).
 - **Progress**: tus estadísticas — escenarios completados, palabras
   aprendidas, promedio de vocabulario, claridad y naturalidad, y racha de
   días activo.
+
+## Cómo moverte por la aplicación
+
+- **El menú siempre está a la vista**: aunque estés dentro de una lección, un
+  capítulo, una conversación o una herramienta, puedes pasar a otra sección
+  con un clic. La sección en la que estás aparece resaltada, y si recargas la
+  página sigues en ella.
+- **Tu nombre, tu nivel y "Log out"** están arriba en todas las pantallas.
+- **La ruta de migas**, por ejemplo "Learning path › Leading an Incident Call",
+  te dice dónde estás. Pulsa la sección para volver a su lista.
+- **Antes de perder algo, te pregunta**: si sales con un texto sin enviar, una
+  grabación, una evaluación en curso, una conversación a medias o un texto en
+  el Writing Assistant, verás "Leave this page?". "Stay" te deja todo como
+  estaba, y "Leave" sale y descarta lo pendiente. Si recargas o cierras la
+  pestaña en ese momento, el navegador muestra su propio aviso.
+- Dentro de una lección, **"← Back"** vuelve a la fase anterior. Al terminar una
+  lección vuelves a Learning path, y al terminar un capítulo, a Grammar.
 
 ## Cómo funciona una lección (escenario)
 

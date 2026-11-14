@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { useUnsavedWork } from '@/components/navigation/NavigationGuard'
 import { postJson } from '@/lib/api'
 import { parseJsonArray } from '@/lib/content'
 
@@ -76,6 +77,15 @@ export default function ListeningPhase({ content, onComplete }: Props) {
   const cancelRef = useRef(false)
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
 
+  useUnsavedWork(results === null && answers.some(answer => answer.trim() !== ''))
+
+  useEffect(() => {
+    return () => {
+      cancelRef.current = true
+      currentAudioRef.current?.pause()
+    }
+  }, [])
+
   async function playDialogue() {
     if (playing) {
       cancelRef.current = true
@@ -91,6 +101,7 @@ export default function ListeningPhase({ content, onComplete }: Props) {
     // Pre-fetch all lines
     const audios: (HTMLAudioElement | null)[] = []
     for (const line of dialogue) {
+      if (cancelRef.current) break
       const gender = genderForSpeaker(line.speaker)
       const audio = await fetchAudio(line.text, gender)
       audios.push(audio)

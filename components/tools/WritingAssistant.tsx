@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Breadcrumbs from '@/components/navigation/Breadcrumbs'
 import { postJson } from '@/lib/api'
 import { loadChecker, SpellChecker } from '@/lib/spelling/checker'
 import { supabase } from '@/lib/supabase'
+import { useUnsavedWork } from '@/components/navigation/NavigationGuard'
 import SpellCheckedTextarea from './SpellCheckedTextarea'
 
 const MAX_TEXT_LENGTH = 5000
@@ -55,15 +57,10 @@ export default function WritingAssistant() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="bg-slate-950 text-white">
       <header className="border-b border-white/10 bg-slate-950/90 px-5 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="text-sm text-slate-400 transition-colors hover:text-white"
-          >
-            ← Dashboard
-          </button>
+          <Breadcrumbs section="tools" current="Writing Assistant" />
           <div className="text-center">
             <div className="text-sm font-semibold">Writing Assistant</div>
             <div className="text-xs text-indigo-300">Check your spelling and wording</div>
@@ -88,6 +85,8 @@ export function WritingAssistantForm({ level }: { level: string }) {
   const [fixAll, setFixAll] = useState<{ before: string; after: string } | null>(null)
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+
+  useUnsavedWork(text.trim() !== '' || isChecking)
 
   useEffect(() => {
     loadChecker()

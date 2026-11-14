@@ -43,7 +43,7 @@ No hay cambios de base de datos ni de API. Las decisiones están en [research.md
 | III. Seguridad de los datos y RLS | PASS | Sin esquema, sin seeds y sin escrituras nuevas. Cambiar de nivel usa la misma actualización de hoy. SC-008 lo comprueba con conteos. |
 | IV. Local-first y privado | PASS | Nada nuevo sale del equipo. |
 | V. Contratos de componentes estables | PASS | Las fases conservan sus props y `onComplete()`. Solo añaden dentro el gancho `useUnsavedWork` y un efecto de limpieza. `app/scenario/[id]/page.tsx` y `app/chapter/[id]/page.tsx` se mueven al grupo sin cambiar su forma de montar las fases. |
-| VI. Verificado antes de terminar | Pendiente | `tsc`, lint, build y [quickstart.md](./quickstart.md) en la app corriendo. |
+| VI. Verificado antes de terminar | PASS con una excepción (2026-11-13) | `tsc`, lint y build pasan, y el dueño recorrió [quickstart.md](./quickstart.md) en la app corriendo. Queda sin verificar el desplazamiento automático de Talk tras enviar una respuesta (T045). |
 
 **Revisión tras el diseño**: sin violaciones. El diseño no añade dependencias, tablas, servicios externos ni secretos.
 
