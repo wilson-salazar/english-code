@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { postJson } from '@/lib/api'
 import { sentenceMatches } from '@/lib/shadow'
 
@@ -21,15 +21,33 @@ export default function FinalSentenceStep({ sentence, onFinished }: Props) {
   const [speechUnsupported, setSpeechUnsupported] = useState(false)
   const [micError, setMicError] = useState('')
   const recognitionRef = useRef<SpeechRecognitionType>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const activeRef = useRef(true)
+
+  useEffect(() => {
+    activeRef.current = true
+    return () => {
+      activeRef.current = false
+      audioRef.current?.pause()
+      const recognition = recognitionRef.current
+      if (!recognition) return
+      recognition.onresult = null
+      recognition.onerror = null
+      recognition.onend = null
+      recognition.abort()
+    }
+  }, [])
 
   async function playSentence() {
     try {
       const response = await postJson('/api/tts', { text: sentence, speaker: 'female' })
       if (!response.ok) return
       const blob = await response.blob()
+      if (!activeRef.current) return
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
       audio.onended = () => URL.revokeObjectURL(url)
+      audioRef.current = audio
       await audio.play()
     } catch {
       // Audio is a convenience; the sentence text is always visible.

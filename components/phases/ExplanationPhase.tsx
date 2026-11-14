@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { postJson } from '@/lib/api'
 import { parseJsonArray } from '@/lib/content'
 
@@ -56,6 +56,15 @@ export default function ExplanationPhase({ content, onComplete }: Props) {
   const [speakingKey, setSpeakingKey] = useState<string | null>(null)
   const [loadingKey, setLoadingKey] = useState<string | null>(null)
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+  const activeRef = useRef(true)
+
+  useEffect(() => {
+    activeRef.current = true
+    return () => {
+      activeRef.current = false
+      currentAudioRef.current?.pause()
+    }
+  }, [])
 
   async function speak(key: string, text: string) {
     if (speakingKey === key) {
@@ -69,7 +78,7 @@ export default function ExplanationPhase({ content, onComplete }: Props) {
     setLoadingKey(key)
     const audio = await fetchAudio(text)
     setLoadingKey(null)
-    if (!audio) return
+    if (!audio || !activeRef.current) return
 
     currentAudioRef.current = audio
     setSpeakingKey(key)

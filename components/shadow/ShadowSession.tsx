@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Breadcrumbs from '@/components/navigation/Breadcrumbs'
 import { postJson } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { splitIntoWords } from '@/lib/shadow'
+import { useUnsavedWork } from '@/components/navigation/NavigationGuard'
 import WordRepeatStep from './WordRepeatStep'
 import FinalSentenceStep from './FinalSentenceStep'
 
@@ -41,6 +43,8 @@ export default function ShadowSession() {
   const lastTopicRef = useRef('')
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const initializedRef = useRef(false)
+
+  useUnsavedWork(stage === 'words' || stage === 'final' || saving)
 
   const playSentence = useCallback(async (text: string) => {
     try {
@@ -207,15 +211,10 @@ export default function ShadowSession() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="bg-slate-950 text-white">
       <header className="border-b border-white/10 bg-slate-950/90 px-5 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-4">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="text-sm text-slate-400 transition-colors hover:text-white"
-          >
-            ← Dashboard
-          </button>
+          <Breadcrumbs section="shadow" current="Practice" />
           <div className="text-center">
             <div className="text-sm font-semibold">Shadowing</div>
             <div className="text-xs text-indigo-300">Pronunciation shadowing practice</div>

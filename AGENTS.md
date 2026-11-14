@@ -35,11 +35,13 @@ covers things a coding assistant needs to know *while working in the code*.
 ## Key structure
 
 - `app/page.tsx` — auth (login/forgot password; sign-ups are closed, single-user app), then routes to `/dashboard`.
-- `app/dashboard/page.tsx` — scenario list, progress stats, level switcher, entry point to Talk with AI.
-- `app/scenario/[id]/page.tsx` — renders the phase sequence for one scenario, one phase component at a time.
+- `app/(app)/` — every signed-in screen. Its `layout.tsx` mounts `components/navigation/AppShell.tsx`, which loads the account once (`useAccount()`) and shows the header (name, level switcher, Log out) and the main menu on every screen. The login and reset-password pages stay outside the group, so they have no menu.
+- `components/navigation/` — `sections.ts` lists the six menu sections and maps each URL to its active section; `NavigationGuard.tsx` holds `useUnsavedWork`, `GuardedLink` and the "Leave this page?" dialog; `Breadcrumbs.tsx` is the "Section › Screen" trail inside a module.
+- `app/(app)/dashboard/page.tsx` — the six sections (Learning path, Grammar, Talk with AI, Shadowing, Tools, Progress), selected with `/dashboard?section=<id>` so a reload keeps the section.
+- `app/(app)/scenario/[id]/page.tsx` — renders the phase sequence for one scenario, one phase component at a time.
 - `components/phases/*.tsx` — one component per phase type (`ImmersionPhase`, `ListeningPhase`, `ComprehensionPhase`, `SpeakingPhase`, `ExpressionPhase`). Phase content comes from `scenarios`/`scenario_phases` tables as JSON (see `lib/content.ts` for parsing helpers).
-- `app/talk/` — open-ended voice conversation with the AI, using the user's saved vocabulary.
-- `app/tools/` and `components/tools/` — the Tools module, listed in the `TOOLS` array of `app/dashboard/page.tsx`. Its first tool is the Writing Assistant: `app/api/writing-assistant` reviews wording on each click, and `lib/spelling/` marks misspelled words in the browser with the dictionaries in `public/dictionaries/en/`, without spending credits.
+- `app/(app)/talk/` — open-ended voice conversation with the AI, using the user's saved vocabulary.
+- `app/(app)/tools/` and `components/tools/` — the Tools module, listed in the `TOOLS` array of `app/(app)/dashboard/page.tsx`. Its first tool is the Writing Assistant: `app/api/writing-assistant` reviews wording on each click, and `lib/spelling/` marks misspelled words in the browser with the dictionaries in `public/dictionaries/en/`, without spending credits.
 - `components/FloatingVocabulary.tsx` — persistent personal word list widget, available on most pages once logged in.
 - `app/api/tts/route.ts` — ElevenLabs proxy. Two fixed voice IDs: `VOICE_FEMALE` (Jessa) and `VOICE_MALE` (Adam). Don't hardcode voice IDs anywhere else — always call this route.
 - `supabase/migrations/` — source of truth for schema. `supabase/seed_scenarios*.sql` — lesson content. Row Level Security scopes all user data (`user_progress`, `user_responses`, personal vocabulary) to its owner.
@@ -47,7 +49,9 @@ covers things a coding assistant needs to know *while working in the code*.
 ## Conventions to follow
 
 - No comments unless explaining a non-obvious *why*.
-- Phase components receive parsed JSON content as props and call `onComplete()` when the user finishes — don't change that contract without updating `app/scenario/[id]/page.tsx`.
+- Phase components receive parsed JSON content as props and call `onComplete()` when the user finishes — don't change that contract without updating `app/(app)/scenario/[id]/page.tsx`.
+- New signed-in screens go in `app/(app)/`, so they get the menu, and add their URL prefix to `sections.ts`. Inside a module, use `Breadcrumbs` instead of a link back to the dashboard.
+- A screen that holds work the learner would lose by leaving (unsent text, a recording, a request carrying their answer, a conversation in progress) calls `useUnsavedWork(condition)`. The menu, the breadcrumb and Log out then ask before leaving. Generating audio or new content doesn't count. Components that play audio or record speech stop it when they unmount.
 - TTS calls always go through `/api/tts` with `{ text, speaker: 'male' | 'female' }` — never call ElevenLabs directly from a component.
 - Every API route that spends provider credits starts with `guardRequest` from `lib/api-guard.ts`, and the client calls it with `postJson` from `lib/api.ts`, never with a bare `fetch`.
 - Local Supabase credentials (from `npx supabase status`) are dev-only; never reuse them or the hosted project's service-role key in client code.

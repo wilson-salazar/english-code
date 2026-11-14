@@ -13,6 +13,7 @@ English Code is an interactive English-learning application for developers, QA e
 - `Talk with AI` voice conversations that use up to 10 saved terms and avoid repeated topics.
 - `Writing Assistant`, in the Tools module: marks misspelled words as you type, with corrections on right-click and a fix-all button, and uses Anthropic to check whether your text sounds natural.
 - Progress tracking per user and per level.
+- A main menu that stays visible in every module, with breadcrumbs inside each one and a warning before leaving unsaved work.
 - Local Supabase stack with PostgreSQL, Auth, Studio, migrations, seed data, and Mailpit.
 
 ## Requirements

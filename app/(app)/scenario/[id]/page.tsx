@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import Breadcrumbs from '@/components/navigation/Breadcrumbs'
+import { sectionHref } from '@/components/navigation/sections'
 import ImmersionPhase from '@/components/phases/ImmersionPhase'
 import ListeningPhase from '@/components/phases/ListeningPhase'
 import ComprehensionPhase from '@/components/phases/ComprehensionPhase'
@@ -117,7 +119,7 @@ export default function ScenarioPage() {
   async function handlePhaseComplete() {
     const isLast = currentPhaseIndex === phases.length - 1
     if (isLast) {
-      router.push('/dashboard')
+      router.push(sectionHref('learning'))
     } else {
       setCurrentPhaseIndex(i => i + 1)
     }
@@ -125,7 +127,7 @@ export default function ScenarioPage() {
 
   if (loading) {
     return (
-      <div className="learning-theme min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="learning-theme py-24 bg-slate-950 flex items-center justify-center">
         <p className="text-slate-400 text-sm">Loading scenario...</p>
       </div>
     )
@@ -133,10 +135,10 @@ export default function ScenarioPage() {
 
   if (!scenario || phases.length === 0) {
     return (
-      <div className="learning-theme min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4">
+      <div className="learning-theme py-24 bg-slate-950 flex flex-col items-center justify-center gap-4">
         <p className="text-gray-500 text-sm">Could not load this scenario.</p>
-        <button onClick={() => router.push('/dashboard')} className="text-indigo-600 text-sm underline">
-          Back to dashboard
+        <button onClick={() => router.push(sectionHref('learning'))} className="text-indigo-600 text-sm underline">
+          Back to Learning path
         </button>
       </div>
     )
@@ -146,22 +148,23 @@ export default function ScenarioPage() {
   const progress = ((currentPhaseIndex) / phases.length) * 100
 
   return (
-    <div className="learning-theme min-h-screen bg-slate-950 text-slate-100 [&_.bg-white]:!bg-white/5 [&_.bg-gray-50]:!bg-white/5 [&_.bg-gray-100]:!bg-white/10 [&_.bg-indigo-50]:!bg-indigo-400/10 [&_.bg-indigo-100]:!bg-indigo-400/15 [&_.bg-teal-50]:!bg-cyan-400/10 [&_.bg-orange-50]:!bg-amber-400/10 [&_.bg-orange-100]:!bg-amber-400/15 [&_.text-gray-900]:!text-slate-100 [&_.text-gray-800]:!text-slate-100 [&_.text-gray-700]:!text-slate-200 [&_.text-gray-600]:!text-slate-300 [&_.text-gray-500]:!text-slate-400 [&_.text-gray-400]:!text-slate-400 [&_.text-gray-300]:!text-slate-500 [&_.border-gray-50]:!border-white/10 [&_.border-gray-100]:!border-white/10 [&_.border-gray-200]:!border-white/10 [&_.border-indigo-100]:!border-indigo-400/25 [&_.border-teal-50]:!border-cyan-300/15 [&_.border-teal-100]:!border-cyan-300/20 [&_.border-orange-100]:!border-amber-300/20 [&_input]:!bg-white/5 [&_textarea]:!bg-white/5">
+    <div className="learning-theme bg-slate-950 text-slate-100 [&_.bg-white]:!bg-white/5 [&_.bg-gray-50]:!bg-white/5 [&_.bg-gray-100]:!bg-white/10 [&_.bg-indigo-50]:!bg-indigo-400/10 [&_.bg-indigo-100]:!bg-indigo-400/15 [&_.bg-teal-50]:!bg-cyan-400/10 [&_.bg-orange-50]:!bg-amber-400/10 [&_.bg-orange-100]:!bg-amber-400/15 [&_.text-gray-900]:!text-slate-100 [&_.text-gray-800]:!text-slate-100 [&_.text-gray-700]:!text-slate-200 [&_.text-gray-600]:!text-slate-300 [&_.text-gray-500]:!text-slate-400 [&_.text-gray-400]:!text-slate-400 [&_.text-gray-300]:!text-slate-500 [&_.border-gray-50]:!border-white/10 [&_.border-gray-100]:!border-white/10 [&_.border-gray-200]:!border-white/10 [&_.border-indigo-100]:!border-indigo-400/25 [&_.border-teal-50]:!border-cyan-300/15 [&_.border-teal-100]:!border-cyan-300/20 [&_.border-orange-100]:!border-amber-300/20 [&_input]:!bg-white/5 [&_textarea]:!bg-white/5">
       {/* Header */}
       <header className="border-b border-white/10 bg-slate-950/90 px-6 py-4 backdrop-blur">
+        <div className="max-w-2xl mx-auto mb-3">
+          <Breadcrumbs section="learning" current={scenario.title} />
+        </div>
         <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <button
-            onClick={() => {
-              if (currentPhaseIndex === 0) {
-                router.push('/dashboard')
-              } else {
-                setCurrentPhaseIndex(i => i - 1)
-              }
-            }}
-            className="flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-white"
-          >
-            {currentPhaseIndex === 0 ? '← Dashboard' : '← Back'}
-          </button>
+          {currentPhaseIndex > 0 ? (
+            <button
+              onClick={() => setCurrentPhaseIndex(i => i - 1)}
+              className="flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-white"
+            >
+              ← Back
+            </button>
+          ) : (
+            <span className="w-12" />
+          )}
           <div className="text-center">
             <div className="text-sm font-semibold text-slate-100">{scenario.title}</div>
             <div className="flex items-center justify-center gap-1 mt-0.5">

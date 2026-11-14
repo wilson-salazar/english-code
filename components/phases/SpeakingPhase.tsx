@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { useUnsavedWork } from '@/components/navigation/NavigationGuard'
 import { postJson } from '@/lib/api'
 
 interface SpeakingContent {
@@ -43,6 +44,18 @@ export default function SpeakingPhase({ content, scenarioTitle, onComplete }: Pr
   const [showExample, setShowExample] = useState(false)
   const [notSupported, setNotSupported] = useState(false)
   const recognitionRef = useRef<SpeechRecognitionType>(null)
+
+  useUnsavedWork(recordState === 'recording' || loading || (transcript.trim() !== '' && !feedback))
+
+  useEffect(() => {
+    return () => {
+      const recognition = recognitionRef.current
+      if (!recognition) return
+      recognition.onresult = null
+      recognition.onend = null
+      recognition.abort()
+    }
+  }, [])
 
   function startRecording() {
     const SpeechRecognition =

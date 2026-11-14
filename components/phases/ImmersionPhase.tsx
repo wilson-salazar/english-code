@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { postJson } from '@/lib/api'
 import { parseJsonArray } from '@/lib/content'
 
@@ -63,12 +63,22 @@ export default function ImmersionPhase({ content, vocabulary, onComplete }: Prop
   const [loadingWord, setLoadingWord] = useState(false)
   const loopRef = useRef<{ cancelled: boolean }>({ cancelled: false })
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+  const activeRef = useRef(true)
+
+  useEffect(() => {
+    activeRef.current = true
+    return () => {
+      activeRef.current = false
+      loopRef.current.cancelled = true
+      currentAudioRef.current?.pause()
+    }
+  }, [])
 
   async function speakWord(word: string) {
     setLoadingWord(true)
     const audio = await fetchAudio(word)
     setLoadingWord(false)
-    if (!audio) return
+    if (!audio || !activeRef.current) return
     currentAudioRef.current = audio
     await playAudio(audio)
   }

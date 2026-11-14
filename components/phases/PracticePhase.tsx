@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { parseJsonArray } from '@/lib/content'
+import { useUnsavedWork } from '@/components/navigation/NavigationGuard'
 
 interface FillBlankItem {
   type: 'fill_blank'
@@ -40,6 +41,8 @@ export default function PracticePhase({ content, onComplete }: Props) {
     items.map(item => (item.type === 'fill_blank' ? '' : null))
   )
   const [results, setResults] = useState<boolean[] | null>(null)
+
+  useUnsavedWork(results === null && answers.some(answer => answer !== null && answer !== ''))
 
   function setAnswer(i: number, value: string | number) {
     setAnswers(prev => {
