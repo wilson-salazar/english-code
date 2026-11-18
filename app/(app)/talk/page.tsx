@@ -100,6 +100,7 @@ export default function TalkWithAiPage() {
   const feedbackRef = useRef<HTMLElement | null>(null)
   const initializedRef = useRef(false)
   const sendingRef = useRef(false)
+  const startingTopicRef = useRef(false)
   // True while the learner is reading the bottom of the chat; false once they scroll up,
   // so new text never pulls the page away from something they are rereading.
   const stickToBottomRef = useRef(true)
@@ -328,9 +329,10 @@ export default function TalkWithAiPage() {
       if (isOpenMode) {
         await startOpenConversation()
       } else {
+        // The topic waits for "Start a new topic": entering or reloading must not spend credits.
         const activeTerms = await loadActiveTerms(profile.id)
         setTerms(activeTerms)
-        await startConversation(profile.id, userLevel, activeTerms)
+        setLoadingTopic(false)
       }
     }
 
@@ -340,7 +342,7 @@ export default function TalkWithAiPage() {
       recognitionRef.current?.stop()
       stopAudio()
     }
-  }, [isOpenMode, loadActiveTerms, router, startConversation, startOpenConversation, stopAudio])
+  }, [isOpenMode, loadActiveTerms, router, startOpenConversation, stopAudio])
 
   useEffect(() => {
     if (!profileId || isOpenMode) return
@@ -379,19 +381,26 @@ export default function TalkWithAiPage() {
   }, [feedback])
 
   async function handleNewTopic() {
-    if (!profileId || loadingTopic || sending) return
-    stopAudio()
-    discardRecognition()
-    setMicError('')
-    if (isOpenMode) {
-      await startOpenConversation()
-      return
+    // loadingTopic only turns on after the saved words load, so a quick second click would
+    // otherwise create a second topic.
+    if (!profileId || loadingTopic || sending || startingTopicRef.current) return
+    startingTopicRef.current = true
+    try {
+      stopAudio()
+      discardRecognition()
+      setMicError('')
+      if (isOpenMode) {
+        await startOpenConversation()
+        return
+      }
+      const activeTerms = await loadActiveTerms(profileId)
+      setTerms(activeTerms)
+      setTranscript('')
+      setRecordingState('idle')
+      await startConversation(profileId, level, activeTerms)
+    } finally {
+      startingTopicRef.current = false
     }
-    const activeTerms = await loadActiveTerms(profileId)
-    setTerms(activeTerms)
-    setTranscript('')
-    setRecordingState('idle')
-    await startConversation(profileId, level, activeTerms)
   }
 
   // Turns the microphone off without letting its last results overwrite the answer box.
@@ -668,6 +677,7 @@ export default function TalkWithAiPage() {
 
   const userTurnCount = messages.filter(message => message.role === 'user').length
   const reachedResponseLimit = !isOpenMode && userTurnCount >= MAX_USER_TURNS
+  const waitingToStart = !isOpenMode && !topicTitle && !loadingTopic
 
   // The topic and the AI's first message arrive on their own, so the conversation only counts as
   // unsaved work once the learner has answered.
@@ -702,13 +712,15 @@ export default function TalkWithAiPage() {
       <main className="mx-auto max-w-3xl space-y-5 px-5 py-6">
         <section className="overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-indigo-600/30 via-violet-600/15 to-cyan-500/10 p-6">
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
-            {topicCategory || (isOpenMode ? 'Open conversation' : 'Preparing a random topic')}
+            {waitingToStart ? 'New conversation' : topicCategory || (isOpenMode ? 'Open conversation' : 'Preparing a random topic')}
           </div>
           <div className="mt-2 flex items-center gap-3">
             <h1 className="text-2xl font-bold text-white">
-              {topicTitle || (isOpenMode ? 'Start with your idea' : 'Your next conversation is loading...')}
+              {waitingToStart
+                ? 'Ready for a new topic?'
+                : topicTitle || (isOpenMode ? 'Start with your idea' : 'Your next conversation is loading...')}
             </h1>
-            {!isOpenMode && <button
+            {!isOpenMode && !waitingToStart && <button
               type="button"
               onClick={() => speakingMessageId === 'topic-title'
                 ? skipAssistantAudio()
@@ -724,8 +736,20 @@ export default function TalkWithAiPage() {
           <p className="mt-2 text-sm text-slate-300">
             {isOpenMode
               ? 'You begin the dialogue. Ask a question or introduce any subject you want to explore in English.'
-              : 'Every visit starts a different subject from your conversation history.'}
+              : waitingToStart
+                ? 'Start when you are ready. Every topic is different from your conversation history.'
+                : 'Every visit starts a different subject from your conversation history.'}
           </p>
+          {waitingToStart && (
+            <button
+              type="button"
+              onClick={() => void handleNewTopic()}
+              disabled={sending}
+              className="mt-5 rounded-full bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 disabled:opacity-40"
+            >
+              Start a new topic
+            </button>
+          )}
         </section>
 
         {!isOpenMode && <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -908,19 +932,21 @@ export default function TalkWithAiPage() {
             <>
               <div className="mb-2 flex items-center justify-between gap-3 text-xs">
                 <span className="font-semibold text-cyan-300">
-                  {loadingTopic
-                    ? 'Preparing the conversation…'
-                    : pendingHistory
-                      ? 'Your answer is saved — retry the AI response'
-                      : reachedResponseLimit
-                        ? 'All your responses are saved — use Finish & feedback to try again'
-                        : speakingMessageId
-                          ? 'Listen to the AI, then answer'
-                          : isOpenMode
-                            ? messages.length === 0
-                              ? 'Your turn — start with any question or topic'
-                              : 'Your turn — continue the conversation'
-                            : 'Your turn — answer the AI question'}
+                  {waitingToStart
+                    ? 'Start a new topic to begin'
+                    : loadingTopic
+                      ? 'Preparing the conversation…'
+                      : pendingHistory
+                        ? 'Your answer is saved — retry the AI response'
+                        : reachedResponseLimit
+                          ? 'All your responses are saved — use Finish & feedback to try again'
+                          : speakingMessageId
+                            ? 'Listen to the AI, then answer'
+                            : isOpenMode
+                              ? messages.length === 0
+                                ? 'Your turn — start with any question or topic'
+                                : 'Your turn — continue the conversation'
+                              : 'Your turn — answer the AI question'}
                 </span>
                 {!isOpenMode && (
                   <span className="text-slate-400">Response {Math.min(userTurnCount + 1, MAX_USER_TURNS)} of {MAX_USER_TURNS}</span>
@@ -933,7 +959,7 @@ export default function TalkWithAiPage() {
                   setTranscript(event.target.value)
                   setRecordingState('review')
                 }}
-                disabled={loadingTopic || sending || pendingHistory !== null || reachedResponseLimit}
+                disabled={waitingToStart || loadingTopic || sending || pendingHistory !== null || reachedResponseLimit}
                 rows={3}
                 placeholder={recordingState === 'recording'
                   ? 'Your words will appear here as you speak...'
@@ -948,7 +974,7 @@ export default function TalkWithAiPage() {
                   {recordingState !== 'recording' ? (
                     <button
                       onClick={startRecording}
-                      disabled={loadingTopic || sending || pendingHistory !== null || speakingMessageId !== null || reachedResponseLimit}
+                      disabled={waitingToStart || loadingTopic || sending || pendingHistory !== null || speakingMessageId !== null || reachedResponseLimit}
                       className="inline-flex items-center gap-2 rounded-full bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400 disabled:opacity-40"
                     >
                       <span aria-hidden="true">🎙</span>

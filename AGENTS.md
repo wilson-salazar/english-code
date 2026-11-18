@@ -40,10 +40,10 @@ covers things a coding assistant needs to know *while working in the code*.
 - `app/(app)/dashboard/page.tsx` — the six sections (Learning path, Grammar, Talk with AI, Shadowing, Tools, Progress), selected with `/dashboard?section=<id>` so a reload keeps the section.
 - `app/(app)/scenario/[id]/page.tsx` — renders the phase sequence for one scenario, one phase component at a time.
 - `components/phases/*.tsx` — one component per phase type (`ImmersionPhase`, `ListeningPhase`, `ComprehensionPhase`, `SpeakingPhase`, `ExpressionPhase`). Phase content comes from `scenarios`/`scenario_phases` tables as JSON (see `lib/content.ts` for parsing helpers).
-- `app/(app)/talk/` — open-ended voice conversation with the AI, using the user's saved vocabulary.
+- `app/(app)/talk/` — open-ended voice conversation with the AI, using the user's saved vocabulary. In saved-words mode, entering or reloading doesn't create a topic; it waits for "Start a new topic", so passing through the page spends no credits.
 - `app/(app)/tools/` and `components/tools/` — the Tools module, listed in the `TOOLS` array of `app/(app)/dashboard/page.tsx`. Its first tool is the Writing Assistant: `app/api/writing-assistant` reviews wording on each click, and `lib/spelling/` marks misspelled words in the browser with the dictionaries in `public/dictionaries/en/`, without spending credits.
 - `components/FloatingVocabulary.tsx` — persistent personal word list widget, available on most pages once logged in.
-- `app/api/tts/route.ts` — ElevenLabs proxy. Two fixed voice IDs: `VOICE_FEMALE` (Jessa) and `VOICE_MALE` (Adam). Don't hardcode voice IDs anywhere else — always call this route.
+- `app/api/tts/route.ts` — ElevenLabs proxy. Two fixed voice IDs: `VOICE_FEMALE` (Jessa) and `VOICE_MALE` (Adam). Don't hardcode voice IDs anywhere else — always call this route. It reuses audio already generated through `lib/tts-cache.ts`, which saves one MP3 per voice, model, voice settings and text in `~/Library/Caches/english-code/tts/` (200 MB, least recently used removed first), so replays don't spend ElevenLabs credits. Changing the voice, model or settings in the route produces new audio, never stale audio. Responses carry `X-Audio-Source: saved` or `generated`.
 - `supabase/migrations/` — source of truth for schema. `supabase/seed_scenarios*.sql` — lesson content. Row Level Security scopes all user data (`user_progress`, `user_responses`, personal vocabulary) to its owner.
 
 ## Conventions to follow

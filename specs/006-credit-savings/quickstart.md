@@ -4,6 +4,15 @@ Pasos para comprobar la spec ([spec.md](./spec.md)). No sustituye al Principio V
 
 Para contar las peticiones, se usan el registro del servidor de desarrollo (`POST /api/talk`, `POST /api/tts`) y la cabecera `X-Audio-Source` de [contracts/tts.md](./contracts/tts.md), visible en la pestaña de red del navegador.
 
+## Estado de la verificación (2026-11-17)
+
+| Escenario | Estado | Quién | Lo comprobado |
+|---|---|---|---|
+| 1. Talk espera al botón | Verificado | Dueño, con registros revisados por Claude | Recargas sin crear temas, el botón crea 1 tema con 1 audio, y volver a Talk no crea ninguno. El doble clic, la recarga a media conversación, el modo abierto y **New topic** se apoyan en el informe del dueño (T016, T023) |
+| 2. Audio reutilizado | Verificado | Dueño, con la carpeta de audio y el registro revisados por Claude | El diálogo de Listening se reutilizó en la segunda reproducción y tras reiniciar el servidor; cada palabra de Shadowing se generó una sola vez. Las peticiones reutilizadas tardan de 30 a 100 ms (T008, T010) |
+| 3. Casos límite | Verificado | Claude | Script temporal: claves, archivos vacíos e ilegibles, límite y fallo de escritura. 401 sin sesión y con token inventado. Ningún audio en el repositorio (T005, T007, T009). Las peticiones simultáneas se revisaron en el código, sin una prueba aparte |
+| 4. Todo sigue igual | Verificado | Dueño | Talk, Shadowing y la lección funcionan igual; los conteos solo cambian por uso real (T022, T024) |
+
 ## Prerrequisitos
 
 - Supabase local corriendo (`npm run db:start`), **nunca** `db:reset`.

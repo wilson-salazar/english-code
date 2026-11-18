@@ -44,7 +44,7 @@ No hay cambios de base de datos ni dependencias nuevas. Las decisiones están en
 | III. Seguridad de los datos y RLS | PASS | Sin esquema, sin seeds y sin escrituras nuevas en la base. Los audios no son datos del estudiante y quedan fuera de la base. |
 | IV. Local-first y privado | PASS | Los audios se guardan en el propio Mac, fuera de iCloud y del repositorio público, y no se envían a ningún sitio nuevo. |
 | V. Contratos de componentes estables | PASS | Los componentes no cambian su forma de pedir audio; la petición y la respuesta de `/api/tts` son las mismas. |
-| VI. Verificado antes de terminar | Pendiente | `tsc`, lint, build y [quickstart.md](./quickstart.md) en la app corriendo. |
+| VI. Verificado antes de terminar | PASS (2026-11-17) | `tsc`, lint y build pasan; el módulo de audio se probó con un script; el dueño recorrió [quickstart.md](./quickstart.md), y la carpeta de audio, el registro del servidor y la base confirman la reutilización y que Talk espera al botón. |
 
 **Revisión tras el diseño**: sin violaciones.
 
