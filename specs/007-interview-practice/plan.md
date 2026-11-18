@@ -73,6 +73,7 @@ supabase/migrations/20261118000000_add_interview_practice.sql   # 3 tablas, índ
 
 app/api/interview/route.ts               # start, next y feedback con la IA (FR-010 a FR-021)
 app/api/interview/cv-text/route.ts       # Texto del PDF con unpdf (FR-003, FR-008)
+lib/cv-text.ts                           # Lectura y normalización del texto, separada para probarla sin sesión
 
 app/(app)/interview/page.tsx             # Monta InterviewSession
 app/(app)/interview/cv/page.tsx          # Monta CvEditor
