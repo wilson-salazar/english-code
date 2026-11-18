@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAccount } from '@/components/navigation/AppShell'
 import { parseSection } from '@/components/navigation/sections'
+import { formatCvDate } from '@/components/interview/CvEditor'
 
 interface Scenario {
   id: string
@@ -72,6 +73,7 @@ function Dashboard() {
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
+  const [cvUpdatedAt, setCvUpdatedAt] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   const userId = user.id
@@ -80,15 +82,17 @@ function Dashboard() {
   const loadData = useCallback(async () => {
     if (!levelId) { setLoading(false); return }
 
-
-    const [{ data: scenarioList }, { data: progressList }, { data: responses }, { data: chapterList }, { data: chapterProgressList }, { count: shadowExercisesCompleted }] = await Promise.all([
+    const [{ data: scenarioList }, { data: progressList }, { data: responses }, { data: chapterList }, { data: chapterProgressList }, { count: shadowExercisesCompleted }, { data: savedCv }] = await Promise.all([
       supabase.from('scenarios').select('id, title, context, order_index').eq('level_id', levelId).eq('is_published', true).order('order_index'),
       supabase.from('user_progress').select('scenario_id, status, score_vocabulary, score_clarity, score_naturalness').eq('user_id', userId),
       supabase.from('user_responses').select('score_vocabulary, score_clarity, score_naturalness, created_at').eq('user_id', userId),
       supabase.from('chapters').select('id, title, description, order_index').eq('level_id', levelId).eq('is_published', true).order('order_index'),
       supabase.from('user_chapter_progress').select('chapter_id, status, score_grammar, score_clarity, score_naturalness').eq('user_id', userId),
       supabase.from('shadow_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+      supabase.from('interview_cvs').select('updated_at').eq('user_id', userId).maybeSingle(),
     ])
+
+    setCvUpdatedAt(savedCv?.updated_at ?? null)
 
     const progressMap = new Map(progressList?.map(p => [p.scenario_id, p]) ?? [])
 
@@ -241,6 +245,48 @@ function Dashboard() {
               </button>
             </article>
           </div>
+        </section>
+        )}
+
+        {activeView === 'interview' && (
+        <section>
+          <div className="mb-5">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Job interviews</div>
+            <h1 className="mt-1 text-2xl font-bold text-slate-100">Interview</h1>
+            <p className="mt-1 text-sm text-slate-400">
+              Practice a job interview in English with an AI recruiter who asks about your own CV.
+            </p>
+          </div>
+
+          <article className="flex min-h-56 flex-col justify-between rounded-3xl border border-indigo-400/25 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-xl shadow-black/20">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Recruiter interview</div>
+              <h2 className="mt-3 text-xl font-bold">Six questions based on your CV</h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                {cvUpdatedAt
+                  ? `CV updated on ${formatCvDate(cvUpdatedAt)}`
+                  : 'Upload your CV to start practicing.'}
+              </p>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              {cvUpdatedAt && (
+                <button
+                  onClick={() => router.push('/interview')}
+                  className="w-fit rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 transition-all hover:-translate-y-0.5 hover:bg-cyan-300"
+                >
+                  Start an interview →
+                </button>
+              )}
+              <button
+                onClick={() => router.push('/interview/cv')}
+                className={cvUpdatedAt
+                  ? 'w-fit rounded-xl border border-white/15 px-4 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-white/5'
+                  : 'w-fit rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 transition-all hover:-translate-y-0.5 hover:bg-cyan-300'}
+              >
+                {cvUpdatedAt ? 'Review your CV' : 'Upload your CV'}
+              </button>
+            </div>
+          </article>
         </section>
         )}
 

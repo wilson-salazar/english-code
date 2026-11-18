@@ -12,6 +12,7 @@ English Code is an interactive English-learning application for developers, QA e
 - Personal word and phrase list with duplicate prevention and learned status.
 - `Talk with AI` voice conversations that use up to 10 saved terms and avoid repeated topics. A new topic starts only when you ask for it, so opening or reloading the page spends no credits.
 - Audio reuse: once a sentence or word has been spoken, replays and later visits use the saved audio instead of asking ElevenLabs again.
+- `Interview`: upload your CV once (PDF, read on your own machine) and practice job interviews in English with an AI recruiter who asks 6 questions about your experience, by voice and text, then gives feedback with stronger versions of your weakest answers.
 - `Writing Assistant`, in the Tools module: marks misspelled words as you type, with corrections on right-click and a fix-all button, and uses Anthropic to check whether your text sounds natural.
 - Progress tracking per user and per level.
 - A main menu that stays visible in every module, with breadcrumbs inside each one and a warning before leaving unsaved work.
@@ -120,6 +121,7 @@ For a walkthrough of the app itself (sign in, lessons, phases, Talk with AI) —
 - Lesson content is loaded from the Supabase seed files.
 - Row Level Security restricts private user data to its owner.
 - API routes that spend AI or audio credits require a valid session and reject oversized input.
+- For Interview, only the CV text you review is stored, in your local database; the PDF itself is never saved. That text is sent to Anthropic at each interview, so you can remove your contact details before saving it.
 - Generated audio is saved outside the repository, in `~/Library/Caches/english-code/tts/` on macOS (the system temporary folder elsewhere), up to 200 MB. It is never committed, and deleting the folder only means the audio is generated again.
 - Sign-ups are closed in `supabase/config.toml`. Closing them does not protect a local database that is reachable from your network, so keep the Supabase ports closed to other devices.
 - Local Supabase credentials are development credentials and must not be reused in production.

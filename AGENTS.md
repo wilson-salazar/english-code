@@ -29,18 +29,19 @@ covers things a coding assistant needs to know *while working in the code*.
 | Variable | Used for |
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase client (`lib/supabase.ts`) |
-| `ANTHROPIC_API_KEY` | `app/api/evaluate`, `app/api/evaluate-speech`, `app/api/talk`, `app/api/writing-assistant` |
+| `ANTHROPIC_API_KEY` | `app/api/evaluate`, `app/api/evaluate-speech`, `app/api/talk`, `app/api/writing-assistant`, `app/api/interview` |
 | `ELEVENLABS_API_KEY` | `app/api/tts` |
 
 ## Key structure
 
 - `app/page.tsx` — auth (login/forgot password; sign-ups are closed, single-user app), then routes to `/dashboard`.
 - `app/(app)/` — every signed-in screen. Its `layout.tsx` mounts `components/navigation/AppShell.tsx`, which loads the account once (`useAccount()`) and shows the header (name, level switcher, Log out) and the main menu on every screen. The login and reset-password pages stay outside the group, so they have no menu.
-- `components/navigation/` — `sections.ts` lists the six menu sections and maps each URL to its active section; `NavigationGuard.tsx` holds `useUnsavedWork`, `GuardedLink` and the "Leave this page?" dialog; `Breadcrumbs.tsx` is the "Section › Screen" trail inside a module.
-- `app/(app)/dashboard/page.tsx` — the six sections (Learning path, Grammar, Talk with AI, Shadowing, Tools, Progress), selected with `/dashboard?section=<id>` so a reload keeps the section.
+- `components/navigation/` — `sections.ts` lists the seven menu sections and maps each URL to its active section; `NavigationGuard.tsx` holds `useUnsavedWork`, `GuardedLink` and the "Leave this page?" dialog; `Breadcrumbs.tsx` is the "Section › Screen" trail inside a module.
+- `app/(app)/dashboard/page.tsx` — the seven sections (Learning path, Grammar, Talk with AI, Interview, Shadowing, Tools, Progress), selected with `/dashboard?section=<id>` so a reload keeps the section.
 - `app/(app)/scenario/[id]/page.tsx` — renders the phase sequence for one scenario, one phase component at a time.
 - `components/phases/*.tsx` — one component per phase type (`ImmersionPhase`, `ListeningPhase`, `ComprehensionPhase`, `SpeakingPhase`, `ExpressionPhase`). Phase content comes from `scenarios`/`scenario_phases` tables as JSON (see `lib/content.ts` for parsing helpers).
 - `app/(app)/talk/` — open-ended voice conversation with the AI, using the user's saved vocabulary. In saved-words mode, entering or reloading doesn't create a topic; it waits for "Start a new topic", so passing through the page spends no credits.
+- `app/(app)/interview/` and `components/interview/` — the Interview module. `/interview/cv` uploads the learner's CV: `app/api/interview/cv-text` reads the PDF in memory with `lib/cv-text.ts` (`unpdf`), never saves the file and calls no provider; only the reviewed text is stored, in `interview_cvs`. `/interview` runs a 6-question interview with an AI recruiter through `app/api/interview` (`start`, `next`, `feedback`), stored in `interviews` and `interview_turns`. The CV is sent to the model as data, never as instructions.
 - `app/(app)/tools/` and `components/tools/` — the Tools module, listed in the `TOOLS` array of `app/(app)/dashboard/page.tsx`. Its first tool is the Writing Assistant: `app/api/writing-assistant` reviews wording on each click, and `lib/spelling/` marks misspelled words in the browser with the dictionaries in `public/dictionaries/en/`, without spending credits.
 - `components/FloatingVocabulary.tsx` — persistent personal word list widget, available on most pages once logged in.
 - `app/api/tts/route.ts` — ElevenLabs proxy. Two fixed voice IDs: `VOICE_FEMALE` (Jessa) and `VOICE_MALE` (Adam). Don't hardcode voice IDs anywhere else — always call this route. It reuses audio already generated through `lib/tts-cache.ts`, which saves one MP3 per voice, model, voice settings and text in `~/Library/Caches/english-code/tts/` (200 MB, least recently used removed first), so replays don't spend ElevenLabs credits. Changing the voice, model or settings in the route produces new audio, never stale audio. Responses carry `X-Audio-Source: saved` or `generated`.
