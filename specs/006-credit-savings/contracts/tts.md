@@ -16,7 +16,7 @@ Sin cambios: `{ text: string, speaker: 'male' | 'female' }`, con la sesión en `
 | Sin sesión, sesión vencida, cuerpo inválido o texto demasiado largo | 401, 503, 400 o 413 | Los errores de 003 | No |
 | Falla ElevenLabs | 500 | `{ error: 'The audio could not be generated. Please try again.' }` | Sí, sin guardar |
 
-Las respuestas 200 llevan la cabecera `X-Audio-Source: saved` o `X-Audio-Source: generated`, para comprobar SC-003, SC-004 y SC-007 en la pestaña de red del navegador. No contiene ningún dato privado.
+Las respuestas 200 llevan la cabecera `X-Audio-Source`: `generated` en la petición que llamó a ElevenLabs, y `saved` en las que no lo llamaron, incluidas las que esperaron a una petición igual en curso. Sirve para comprobar SC-003, SC-004 y SC-007 en la pestaña de red del navegador, y no contiene ningún dato privado.
 
 ## `lib/tts-cache.ts`
 
