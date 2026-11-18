@@ -110,6 +110,29 @@ Abre **Tools** en el dashboard y luego **Writing Assistant** para corregir un te
 
 El texto no se guarda: se pierde al salir de la página.
 
+## Interview (entrevista con una reclutadora)
+
+Practica entrevistas de trabajo en inglés con una reclutadora de IA que pregunta
+sobre tu propia experiencia.
+
+1. **Sube tu CV**: en **Interview**, pulsa **Upload your CV** y elige tu CV en
+   PDF (hasta 5 MB). Verás el texto que se leyó: revísalo, corrige lo que haga
+   falta y quita tu teléfono o tu correo si no quieres enviarlos. Pulsa
+   **Save CV**. El PDF no se guarda, solo el texto que revisaste. Puedes
+   volver a **Review your CV** para editarlo o reemplazarlo cuando quieras.
+2. **Empieza la entrevista**: pulsa **Start an interview**. La reclutadora,
+   Jessa, se presenta y te hace la primera pregunta con voz y texto.
+3. **Responde**: pulsa **Start talking** y habla, o escribe tu respuesta.
+   Antes de enviarla con **Send** puedes corregir el texto. Si respondes en
+   español, te pedirá hacerlo en inglés y la pregunta no avanza.
+4. **Son 6 preguntas** ("Question N of 6"), distintas en cada entrevista y
+   basadas en tu CV. Puedes terminar antes con **Finish & feedback**.
+5. **Retroalimentación**: al final verás tus fortalezas, qué mejorar, un
+   siguiente paso y una versión mejorada de tus respuestas más débiles junto a
+   lo que dijiste.
+
+Tu CV se envía a Anthropic en cada entrevista para preparar las preguntas.
+
 ## Lista de vocabulario personal
 
 En la mayoría de las pantallas verás un widget flotante para guardar palabras

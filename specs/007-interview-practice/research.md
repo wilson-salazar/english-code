@@ -65,7 +65,7 @@ Decisiones tomadas tras leer el código actual, la guía de Next.js 16.2.7 en `n
 - **`/interview/cv`**: subir el PDF, revisar y corregir el texto en un cuadro con contador de caracteres, y guardar. Con un CV guardado, el cuadro empieza con su texto, y se puede reemplazar subiendo otro PDF.
 - **`/interview`**: la pantalla de la entrevista, con el flujo de Talk: botón para empezar (006), mensajes de la reclutadora con voz y texto, respuesta por voz o por escrito en un cuadro editable, el avance "Question N of 6", **Finish & feedback** y la tarjeta de retroalimentación.
 - **Rutas de migas**: `Interview › Your CV` e `Interview › Practice`.
-- **Trabajo sin guardar (005)**: en el CV, un texto distinto del guardado; en la entrevista, grabando, con texto sin enviar, enviando, o con al menos una respuesta y sin retroalimentación.
+- **Trabajo sin guardar (005)**: en el CV, un texto distinto del guardado; en la entrevista, grabando, con texto sin enviar, enviando, o desde la primera pregunta hasta la retroalimentación. A diferencia de Talk, donde el tema se crea solo al entrar, aquí el estudiante empieza la entrevista a propósito y no se puede retomar (corregido el 2026-11-18 tras la prueba del dueño).
 
 ## 7. Voz y reconocimiento de voz
 

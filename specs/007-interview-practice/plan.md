@@ -44,7 +44,7 @@ Las decisiones están en [research.md](./research.md).
 | III. Seguridad de los datos y RLS (no negociable) | PASS | Tablas nuevas en una migración nueva, con RLS limitada al dueño en las tres. Se aplica con `psql` tras un `pg_dump` verificado fuera del repositorio, con conteos antes y después. Sin `db:reset`, sin cambios en tablas existentes. |
 | IV. Local-first y privado | PASS | La base sigue siendo local. El PDF se lee en el servidor del Mac y no se guarda; solo el texto revisado sale a Anthropic al entrevistar, como ya ocurre con las respuestas de las evaluaciones. El estudiante puede quitar sus datos de contacto antes de guardar. |
 | V. Contratos de componentes estables | PASS | No toca las fases ni `onComplete()`. |
-| VI. Verificado antes de terminar | Pendiente | `tsc`, lint, build, la migración comprobada y [quickstart.md](./quickstart.md) en la app corriendo. |
+| VI. Verificado antes de terminar | PASS con excepciones (2026-11-18) | `tsc`, lint y build pasan; la migración se aplicó tras una copia verificada, sin cambiar las tablas existentes, y con RLS comprobada; la lectura de PDF se probó con muestras; el dueño recorrió [quickstart.md](./quickstart.md). Sin probar por separado: el 413 con sesión y la sesión vencida. |
 
 **Restricción del stack**: `unpdf` es una dependencia de ejecución nueva, justificada en [research §1](./research.md) y en la tabla de complejidad.
 

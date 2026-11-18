@@ -2,6 +2,17 @@
 
 Pasos para comprobar la spec ([spec.md](./spec.md)). No sustituye al Principio VI: `npx tsc --noEmit`, `npm run lint` y `npm run build`, obligatorio porque hay rutas, una dependencia y una migración nuevas.
 
+## Estado de la verificación (2026-11-18)
+
+| Escenario | Estado | Quién | Lo comprobado |
+|---|---|---|---|
+| 1. Migración | Verificado | Claude | Copia `pg_dump` verificada, conteos iguales, RLS y una política por tabla, y sin sesión las tres tablas devuelven `[]` (T002, T006, T007) |
+| 2. Cargar el CV | Verificado | Dueño y Claude | Con muestras: un CV de 3 páginas en 81 ms, y escaneado, con contraseña, no PDF y más de 5 MB rechazados. El dueño guardó su CV (6.568 caracteres) (T010, T016) |
+| 3. La entrevista | Verificado | Dueño, con la base revisada por Claude | 4 entrevistas con enfoques distintos; la completa usó 5 tipos de pregunta. Una entrevista terminada tras 2 respuestas solo usó un tipo (T022, T024, T025) |
+| 4. Retroalimentación | Verificado | Dueño, con la base revisada por Claude | Guardada tras 6 respuestas y tras 2 (T029) |
+| 5. Protección y errores | Parcial | Claude y dueño | 401 sin sesión y con token inventado en las dos rutas. El aviso al recargar sale desde la primera pregunta, tras corregirlo. Sin probar: el 413 con sesión y la sesión vencida (T034, T036) |
+| 6. Todo sigue igual | Verificado | Dueño y Claude | Según el dueño; las tablas existentes no cambiaron salvo por 3 palabras guardadas (T037) |
+
 ## Prerrequisitos
 
 - Supabase local corriendo (`npm run db:start`), **nunca** `db:reset`.

@@ -1,4 +1,4 @@
-export type SectionId = 'learning' | 'grammar' | 'talk' | 'shadow' | 'tools' | 'progress'
+export type SectionId = 'learning' | 'grammar' | 'talk' | 'interview' | 'shadow' | 'tools' | 'progress'
 
 export interface Section {
   id: SectionId
@@ -10,6 +10,7 @@ export const SECTIONS: Section[] = [
   { id: 'learning', label: 'Learning path', description: 'Lessons and scenarios' },
   { id: 'grammar', label: 'Grammar', description: 'Core grammar chapters' },
   { id: 'talk', label: 'Talk with AI', description: 'Voice conversation' },
+  { id: 'interview', label: 'Interview', description: 'Practice with a recruiter' },
   { id: 'shadow', label: 'Shadowing', description: 'Pronunciation practice' },
   { id: 'tools', label: 'Tools', description: 'Writing and more' },
   { id: 'progress', label: 'Progress', description: 'KPIs and skills' },
@@ -31,6 +32,7 @@ const MODULE_SECTIONS: Array<[prefix: string, section: SectionId]> = [
   ['/scenario/', 'learning'],
   ['/chapter/', 'grammar'],
   ['/talk', 'talk'],
+  ['/interview', 'interview'],
   ['/shadow', 'shadow'],
   ['/tools/', 'tools'],
 ]

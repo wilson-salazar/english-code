@@ -30,7 +30,7 @@ Llama a la IA. Petición de 128 KB como máximo.
 
 ### `mode: 'next'`
 
-**Petición**: `{ mode: 'next', level, cvText, focusTitle: string, questionCount: 6, history: Turn[] }`; `history` de 1 a 20 turnos (6 preguntas y 6 respuestas, más las respuestas no aceptadas por no estar en inglés), empieza con la reclutadora y termina con una respuesta del estudiante.
+**Petición**: `{ mode: 'next', level, cvText, focusTitle: string, acceptedAnswers: number, history: Turn[] }`; `acceptedAnswers` es el número de respuestas ya aceptadas antes de la última, de 0 a 5; `history` de 1 a 20 turnos (6 preguntas y 6 respuestas, más las respuestas no aceptadas por no estar en inglés), empieza con la reclutadora y termina con una respuesta del estudiante.
 
 **Respuesta 200**: `{ message: string, questionType: QuestionType | null, finished: boolean, answerAccepted: boolean }`. Tras la sexta respuesta aceptada, `message` cierra la entrevista, `questionType` es `null` y `finished` es verdadero. Si la respuesta no está en inglés, `answerAccepted` es falso, `message` pide en inglés responder en inglés y repite la pregunta, y el avance no cambia.
 
@@ -47,8 +47,8 @@ Turn = { role: 'recruiter' | 'candidate', content: string }   // 1 a 5000 caract
 QuestionType = 'opening' | 'cv_experience' | 'qa_concepts' | 'automation'
              | 'situational' | 'practical' | 'closing'
 InterviewFeedback = {
-  strengths: string[]             // 2 a 4
-  improvements: string[]          // 2 a 4
+  strengths: string[]             // hasta 4; se piden 2 a 4
+  improvements: string[]          // hasta 4; se piden 2 a 4
   nextStep: string
   improvedAnswers: {              // 1 a 3; las respuestas más débiles
     question: string
