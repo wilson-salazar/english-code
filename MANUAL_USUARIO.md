@@ -86,9 +86,20 @@ desbloquea el siguiente.
 ## Talk with AI (conversación libre)
 
 Desde la vista "Talk" del dashboard puedes tener una conversación por voz con
-la IA usando hasta 10 de tus palabras guardadas. La IA elige un tema, ustedes
+la IA usando hasta 10 de tus palabras guardadas. Al entrar verás las palabras que
+se usarán y el botón **Start a new topic**: el tema se crea solo cuando lo pulsas,
+así que entrar o recargar no gasta créditos. La IA elige el tema, ustedes
 conversan por turnos (hasta 5 turnos tuyos) y al final recibes un resumen con
 tus fortalezas, qué mejorar y un siguiente paso sugerido.
+
+Si recargas la página con una conversación a medias, la app te avisa antes. Al
+volver, verás de nuevo el botón para empezar un tema; la conversación anterior
+queda guardada en tu historial.
+
+**El audio se reutiliza**: cuando una palabra o una frase ya sonó una vez, al
+repetirla (por ejemplo, con "Listen again" en Shadowing) o al volver otro día a
+la misma lección, se usa el audio guardado en tu equipo, sin gastar créditos de
+voz.
 
 ## Tools: Writing Assistant
 
